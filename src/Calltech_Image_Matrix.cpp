@@ -1,4 +1,4 @@
-#include "Calltech_Image_Matrix.h"
+#include "include/Calltech_Image_Matrix.h"
 #include <iostream>
 
 Calltech_Image_Matrix::Calltech_Image_Matrix()

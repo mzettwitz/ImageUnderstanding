@@ -1,7 +1,7 @@
 #include <iostream>
 #include <opencv2/core/core.hpp>
 #include <opencv2/tracking.hpp>
-#include "Calltech_Image_Matrix.h"
+#include "include/Calltech_Image_Matrix.h"
 
 int main(void)
 {

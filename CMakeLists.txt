@@ -26,9 +26,7 @@ add_executable(${PROJECT_NAME} ${SRC_LIST}
 	src/Calltech_Image_Matrix.cpp
 	
 	#HEADER
-	src/Calltech_Image_Matrix.h
-	#INCLUDE
-	#include/example.h
+        include/Calltech_Image_Matrix.h
 )
 
 target_link_libraries ( ${PROJECT_NAME} ${OpenCV_LIBS} ${CMAKE_THREAD_LIBS_INIT}

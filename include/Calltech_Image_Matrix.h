@@ -13,12 +13,12 @@ public:
 
 	int loadImagesFromPath(cv::String);
 
-	std::vector < std::vector < cv::Mat > > getAllImages()	{ return m_all_image_data; };
-	std::vector < cv::Mat > getAllImagesOfIthClass(int i)	{ return m_all_image_data.at(i); };
+    std::vector < std::vector < cv::Mat > > getAllImages()	{ return m_all_image_data; }
+    std::vector < cv::Mat > getAllImagesOfIthClass(int i)	{ return m_all_image_data.at(i); }
 	cv::Mat getIthImageOfJthCategory(int i, int j)			{ return getAllImagesOfIthClass(j).at(i); }
 
-	std::vector < cv::String > getAllCategoriesNames()		{ return m_categories_names; };
-	cv::String getIthCategoryName(int i)					{ return m_categories_names.at(i); };
+    std::vector < cv::String > getAllCategoriesNames()		{ return m_categories_names; }
+    cv::String getIthCategoryName(int i)					{ return m_categories_names.at(i); }
 
 private:
 	std::vector < std::vector < cv::Mat > > m_all_image_data;
