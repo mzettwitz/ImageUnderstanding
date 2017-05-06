@@ -20,6 +20,8 @@ public:
     std::vector < cv::String > getAllCategoriesNames()		{ return m_categories_names; }
     cv::String getIthCategoryName(int i)					{ return m_categories_names.at(i); }
 
+    size_t getNrCategories()                                {return m_nr_categories;}
+
 private:
 	std::vector < std::vector < cv::Mat > > m_all_image_data;
 	std::vector < cv::String > m_categories_names;
