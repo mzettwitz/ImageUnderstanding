@@ -27,6 +27,7 @@ add_executable(${PROJECT_NAME} ${SRC_LIST}
 	
 	#HEADER
         include/Calltech_Image_Matrix.h
+        include/error_metrics.h
 )
 
 target_link_libraries ( ${PROJECT_NAME} ${OpenCV_LIBS} ${CMAKE_THREAD_LIBS_INIT}
