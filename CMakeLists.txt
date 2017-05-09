@@ -3,7 +3,7 @@ cmake_minimum_required( VERSION 2.8 )
 #set ( CMAKE_BUILD_TYPE Release )
 #add_definitions ( -Wall )
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-
+SET("OpenCV_DIR" "C:/OpenCV3.2-32bit/build")
 find_package ( Threads )
 find_package ( OpenCV REQUIRED )
 
@@ -24,10 +24,12 @@ add_executable(${PROJECT_NAME} ${SRC_LIST}
 	#SOURCE
 	src/main.cpp
 	src/Calltech_Image_Matrix.cpp
+	src/KFoldValidation.cpp
 	
 	#HEADER
         include/Calltech_Image_Matrix.h
         include/error_metrics.h
+	include/KFoldValidation.h
 )
 
 target_link_libraries ( ${PROJECT_NAME} ${OpenCV_LIBS} ${CMAKE_THREAD_LIBS_INIT}
