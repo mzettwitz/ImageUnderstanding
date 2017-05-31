@@ -22,9 +22,13 @@ aux_source_directory(. SRC_LIST)
 add_executable(${PROJECT_NAME} ${SRC_LIST}
 	#SOURCE
 	src/main.cpp
-
-	#INCLUDE
-	#include/example.h
+	src/Calltech_Image_Matrix.cpp
+	src/KFoldValidation.cpp
+	
+	#HEADER
+        include/Calltech_Image_Matrix.h
+        include/error_metrics.h
+	include/KFoldValidation.h
 )
 
 target_link_libraries ( ${PROJECT_NAME} ${OpenCV_LIBS} ${CMAKE_THREAD_LIBS_INIT}
