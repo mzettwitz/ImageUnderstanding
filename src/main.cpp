@@ -2,7 +2,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/tracking.hpp>
 #include "include/Calltech_Image_Matrix.h"
-
+#include "include/KFoldValidation.h"
 int main(void)
 {
     // Test for correct integration of opencv + contrib
@@ -17,7 +17,11 @@ int main(void)
     // 'Caltech101'(101_ObjectCategories) data container into it
     cv::String path = "data/101_ObjectCategories/*.jpg";
     Calltech_Image_Matrix img_Matrix;
-    if (img_Matrix.loadImagesFromPath(path) != 0) return 0;
+	if (img_Matrix.loadImagesFromPath(path) != 0) return 0;
 
-    return 0;
+	// put image matrix in the 10Fold
+	KFoldValidation Validation;
+	Validation.create10Fold(img_Matrix.getAllImages());
+	
+	return 0;
 }

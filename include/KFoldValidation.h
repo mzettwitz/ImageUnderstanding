@@ -8,7 +8,6 @@ class KFoldValidation
 public:
 	KFoldValidation();
 	~KFoldValidation();
-
-	int test();
+	int create10Fold(std::vector < std::vector < cv::Mat > > m_all_image_data_of_class);
 };
 #endif
