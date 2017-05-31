@@ -3,7 +3,6 @@ cmake_minimum_required( VERSION 2.8 )
 #set ( CMAKE_BUILD_TYPE Release )
 #add_definitions ( -Wall )
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-SET("OpenCV_DIR" "C:/OpenCV3.2-32bit/build")
 find_package ( Threads )
 find_package ( OpenCV REQUIRED )
 
