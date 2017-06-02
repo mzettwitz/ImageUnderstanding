@@ -4,7 +4,7 @@ ClassifierData::ClassifierData()
 {
     m_classNumber = -1;
     m_errors.resize(101);
-    m_BoostClassifier = cv::ml::Boost.create();
+    m_BoostClassifier = cv::ml::Boost::create();
 }
 
 ClassifierData::ClassifierData(unsigned int totalClasses, unsigned int id, unsigned int type)
@@ -42,7 +42,7 @@ cv::Ptr<void> ClassifierData::getClassifier(unsigned int type)
     case 2:
         return m_CascadeClassifier;
     default:
-        return nullptr;
+        return cv::Ptr<void>();
         break;
     }
 }
@@ -54,5 +54,5 @@ unsigned int ClassifierData::getNr()
 
 std::vector<int>& ClassifierData::getErrors()
 {
-    return &m_errors;
+    return m_errors;
 }
