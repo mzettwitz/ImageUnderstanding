@@ -6,6 +6,7 @@
 
 // Includes
 #include "include/Calltech_Image_Matrix.h"
+#include "include/ClassifierData.h"
 
 
 //=====================================================================================================================
@@ -17,52 +18,46 @@
 //=====================================================================================================================
 
 
-class Classifier;
+
 class ClassifierOutput;
-
-
-// Assignments per class
-void classAssignments(int classNr, std::vector<int> &classifiedAs, std::vector<int> &errorDistribution)
-{
-    // count assignments for each class (false-negative and true-positive)
-    for(i = 0; i < classifiedAs.size(); i++)
-    {
-       if(classifiedAs[i] != classNr)
-           errorDistribution[classifiedAs[i]]++;
-       else
-           errorDistribution[classNr]++;
-    }
-}
 
 
 // Error per class
 float classError(int classNr, std::vector<int> &errorDistribution)
 {
-    // correct assignments / total number of classes
-   return (float)errorDistribution[classNr]/(float)(errorDistribution.capacity()-errorDistribution[classNr]);
+    float err = 0.f;
+    // summed errors / total errors
+    for(int i = 0; i < errorDistribution.size(); i++)
+        err += (float)errorDistribution.at(i);
+
+    return err/(float)errorDistribution.size();
 }
 
 
 // Confusion Matrix
-std::vector< std::vector <int> > confMatrix(std::vector<Classifier> &classifiers, Calltech_Image_Matrix &imageMat)
+std::vector< std::vector <float> > confMatrix(std::vector<ClassifierData> &classifiers, Calltech_Image_Matrix &imageMat)
 {
 
     int nrCats = imageMat.getNrCategories();
 
     // reserve capacity for all N classes and all N errors + average error per class: NxN+1 matrix
-    std::vector< std::vector <int> > confMatrix;
+    std::vector< std::vector <float> > confMatrix;
     confMatrix.reserve(nrCats);
-    for(std::vector<int> singleClass : confMatrix)
+    for(std::vector<float> singleClass : confMatrix)
         singleClass.reserve(nrCats+1);
 
     // iterate over all classes
     for(int i = 0; i < nrCats; i++)
     {
+        float totalErrors = 0.f;
+        for(int j = 0; j < nrCats; j++)
+            totalErrors += (float)classifiers.at(i).getErrors().at(j);
+
         // iterate over all class errors
         for(int j = 0; i < nrCats; j++)
-            confMatrix[i][j] = classifiers[i].classifierOutput.errorDistribution[j];
+            confMatrix[i][j] = (float)(classifiers.at(i).getErrors().at(j))/totalErrors;
 
         // average error for class j
-        confMatrix[i][nrCats] = classError(classifiers[i].classifierOutput.errorDistribtion);
+        confMatrix[i][nrCats] = classError(classifiers.at(i).getNr(), classifiers.at(i).getError());
     }
 }
