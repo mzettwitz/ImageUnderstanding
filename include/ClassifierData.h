@@ -14,11 +14,11 @@ private:
     std::vector<int>    m_errors;
 
     // cv classifier
-    union
-    {
+  //  union
+  //  {
         cv::Ptr<cv::ml::Boost>          m_BoostClassifier;
         cv::Ptr<cv::CascadeClassifier>  m_CascadeClassifier;
-    };
+ //   };
 
 public:
     ClassifierData ();

@@ -47,14 +47,14 @@ int KFoldValidation::create10Fold(std::vector < std::vector < cv::Mat > > m_all_
 				}
 				for (int c = 0; c < 101; c++)
 				{
-					std::vector < cv::Mat > foldimages = m_initalFolds(c).at(trainfold);
+					std::vector < cv::Mat > foldimages = m_initalFolds.at(c).at(trainfold);
 					training.push_back(foldimages);
 				}
 			}
 			// build test set for each fold
 			for (int c = 0; c < 101; c++)
 			{
-				std::vector < cv::Mat > foldimages = m_initalFolds(c).at(fold);
+				std::vector < cv::Mat > foldimages = m_initalFolds.at(c).at(fold);
 				testing.push_back(foldimages);
 			}
 
@@ -103,8 +103,8 @@ std::vector <std::vector < std::vector < cv::Mat > > >   KFoldValidation::create
 		{
 			int randomNumber = dis(gen);
 
-			auto tempImage = all_image_data(classes).at(randomNumber);
-			initialFolds.at(classes).at(foldcounter%Folds).push_back(tempImage);// save image for each class and the inital fold 
+			auto tempImage = all_image_data.at(classes).at(randomNumber);
+			initialFolds.at(classes).at(foldcounter % Folds).push_back(tempImage);// save image for each class and the inital fold 
 			foldcounter++;
 		}
 

@@ -20,8 +20,8 @@ int main(void)
 	if (img_Matrix.loadImagesFromPath(path) != 0) return 0;
 
 	// put image matrix in the 10Fold
-	KFoldValidation Validation;
-	Validation.create10Fold(img_Matrix.getAllImages());
+//	KFoldValidation Validation;
+//	Validation.create10Fold(img_Matrix.getAllImages());
 	
 	return 0;
 }
