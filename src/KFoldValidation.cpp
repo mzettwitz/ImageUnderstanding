@@ -1,6 +1,7 @@
 #include "include/KFoldValidation.h"
 #include "include/Calltech_Image_Matrix.h"
 #include <iostream>
+#include <random>
 
 //=====================================================================================================================
 /*TODOS:
@@ -20,21 +21,23 @@ KFoldValidation::~KFoldValidation()
 
 int KFoldValidation::create10Fold(std::vector < std::vector < cv::Mat > > m_all_image_data)
 {
-	//iterativ steps over all classes 
-	int sizes_of_all_classes = 101;
+	//get smallest imagenumber of all classes
 
-	for (int classes = 0; classes < 101; classes++)
+	smallestClassSize = findImageNumberOfSmallestClass(m_all_image_data);
+	int k = 10; // definition of 10 folds
+	
+	for (int classes = 0; classes < 101; classes++) 
 	{
-		// get number of  images in the class 
-		std::vector < cv::Mat > all_images_of_class = m_all_image_data.at(classes);
-		int sizeClass = static_cast<int>(all_images_of_class.size());
-		int k = 10; // definition of 10 folds
+		
+		// create intial fold datastructure
 
-		// create Lists for Trainig and Testing
-		cv::Mat training;
-		cv::Mat testing;
+		m_initalFolds = createInitialFolds(k, smallestClassSize, m_all_image_data);
+
 		for (int fold = 1; fold <= k; fold++)
 		{
+			// create Lists for Trainig and Testing
+			cv::Mat     training;
+			cv::Mat     testing;
 			// build training set for each fold
 			for (int trainfold = 1; trainfold <= k; trainfold++)
 			{
@@ -42,17 +45,17 @@ int KFoldValidation::create10Fold(std::vector < std::vector < cv::Mat > > m_all_
 				{
 					continue;
 				}
-				for (int c = 0; c < sizeClass; c++)
+				for (int c = 0; c < 101; c++)
 				{
-					cv::Mat image = all_images_of_class.at(trainfold);
-					training.push_back(image);
+					std::vector < cv::Mat > foldimages = m_initalFolds(c).at(trainfold);
+					training.push_back(foldimages);
 				}
 			}
 			// build test set for each fold
-			for (int c = 0; c < sizeClass; c++)
+			for (int c = 0; c < 101; c++)
 			{
-				cv::Mat image = all_images_of_class.at(fold);
-				testing.push_back(image);
+				std::vector < cv::Mat > foldimages = m_initalFolds(c).at(fold);
+				testing.push_back(foldimages);
 			}
 
 			//=====================================================================================================================
@@ -79,4 +82,51 @@ int KFoldValidation::create10Fold(std::vector < std::vector < cv::Mat > > m_all_
 
 
 	return 0;
+}
+
+std::vector <std::vector < std::vector < cv::Mat > > >   KFoldValidation::createInitialFolds(int Folds, int numberOfImages, std::vector < std::vector < cv::Mat > > all_image_data)
+{
+	std::vector <std::vector < std::vector < cv::Mat > > > initialFolds;
+	initialFolds.resize(101);// for each class produce folds
+
+	// go over each class and gives each object an inital fold
+
+	for (int classes = 0; classes < 101; classes++)
+	{
+		int foldcounter = 0;
+		// preparation to get random images for the classifier
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_int_distribution<> dis(1,static_cast<int>(all_image_data.at(classes).size()));
+
+		for (int index = 0; index < numberOfImages; index++)
+		{
+			int randomNumber = dis(gen);
+
+			auto tempImage = all_image_data(classes).at(randomNumber);
+			initialFolds.at(classes).at(foldcounter%Folds).push_back(tempImage);// save image for each class and the inital fold 
+			foldcounter++;
+		}
+
+	}
+
+
+	return initialFolds;
+}
+
+int  KFoldValidation::findImageNumberOfSmallestClass(std::vector < std::vector < cv::Mat > > m_all_image_data)
+{
+	int smallestnumber = 1000; // initial number of smallest class
+	int tempnumber; // temp number of images per class
+
+	for (int i = 0 ; i<101;i++)
+	{
+		tempnumber = static_cast<int>(m_all_image_data.at(i).size());
+
+		if (tempnumber < smallestnumber)
+		{
+			smallestnumber = tempnumber;
+		}
+	}
+	return smallestnumber;
 }
