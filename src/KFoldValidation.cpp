@@ -2,6 +2,7 @@
 #include "include/Calltech_Image_Matrix.h"
 #include <iostream>
 #include <random>
+
 //=====================================================================================================================
 /*TODOS:
 class Classifier(with int classNr + class Classifier + class ClassifierOutput)

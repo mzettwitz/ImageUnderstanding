@@ -14,6 +14,5 @@ public:
 	
 	std::vector <std::vector < std::vector < cv::Mat > > > m_initalFolds; // class + fold + image
 	int smallestClassSize;
-
 };
 #endif

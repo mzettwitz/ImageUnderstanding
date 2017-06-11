@@ -24,11 +24,14 @@ add_executable(${PROJECT_NAME} ${SRC_LIST}
 	src/main.cpp
 	src/Calltech_Image_Matrix.cpp
 	src/KFoldValidation.cpp
+  src/ClassifierData.cpp
 	
 	#HEADER
         include/Calltech_Image_Matrix.h
         include/error_metrics.h
-	include/KFoldValidation.h
+	      include/KFoldValidation.h
+        include/ClassifierData.h
+
 )
 
 target_link_libraries ( ${PROJECT_NAME} ${OpenCV_LIBS} ${CMAKE_THREAD_LIBS_INIT}
