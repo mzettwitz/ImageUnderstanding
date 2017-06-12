@@ -17,7 +17,7 @@ private:
   //  union
   //  {
         cv::Ptr<cv::ml::Boost>          m_BoostClassifier;
-        cv::Ptr<cv::CascadeClassifier>  m_CascadeClassifier;
+//        cv::Ptr<cv::CascadeClassifier>  m_CascadeClassifier;
  //   };
 
 public:
@@ -28,7 +28,7 @@ public:
     // increments error at target position
     void addError(unsigned int i);
     // returns void pointer to underlying classifier
-    cv::Ptr<void> getClassifier(unsigned int type);
+	cv::Ptr<cv::ml::Boost>  getClassifier(unsigned int type);
     unsigned int getNr();
     std::vector<int>& getErrors();
 

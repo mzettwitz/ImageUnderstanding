@@ -17,7 +17,7 @@ ClassifierData::ClassifierData(unsigned int totalClasses, unsigned int id, unsig
         m_BoostClassifier = cv::ml::Boost::create();
         break;
     case 2:
-        m_CascadeClassifier = cv::Ptr<cv::CascadeClassifier>();
+//        m_CascadeClassifier = cv::Ptr<cv::CascadeClassifier>();
         break;
     default:
         break;
@@ -33,16 +33,16 @@ void ClassifierData::addError(unsigned int i)
     m_errors.at(i)++;
 }
 
-cv::Ptr<void> ClassifierData::getClassifier(unsigned int type)
+cv::Ptr<cv::ml::Boost>  ClassifierData::getClassifier(unsigned int type)
 {
     switch (type) {
     case 1:
         return m_BoostClassifier;
         break;
     case 2:
-        return m_CascadeClassifier;
+   //     return m_CascadeClassifier;
     default:
-        return cv::Ptr<void>();
+//        return cv::Ptr<void>();
         break;
     }
 }

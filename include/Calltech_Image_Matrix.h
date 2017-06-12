@@ -1,9 +1,11 @@
+#pragma once
+
 #ifndef CALLTECH_IMAGE_MATRIX_HPP
 #define CALLTECH_IMAGE_MATRIX_HPP
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
-
+#include <opencv2/imgproc.hpp>
 
 class Calltech_Image_Matrix
 {
