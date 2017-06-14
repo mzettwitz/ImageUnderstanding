@@ -11,7 +11,7 @@ Calltech_Image_Matrix::~Calltech_Image_Matrix()
 }
 
 // load all images in a folder recursively
-int Calltech_Image_Matrix::loadImagesFromPath(cv::String path)
+int Calltech_Image_Matrix::loadImagesFromPath(cv::String path, int width, int height)
 {
 	// get all image paths 
 	std::vector < cv::String  > all_img_paths;
@@ -62,6 +62,19 @@ int Calltech_Image_Matrix::loadImagesFromPath(cv::String path)
 		
 		m_all_image_data[categories_nr].push_back(img_resized);
 	}
+
+    // setup the ROI vector
+    for(int i = 0; i < m_all_image_data.size(); i++)
+    {
+        std::vector<dlib::rectangle> rois;
+        for(int j = 0; j < m_all_image_data[i].size(); j++)
+        {
+            dlib::rectangle rect = dlib::rectangle(0,0,width, length);
+            rois.push_back(rect);
+        }
+        m_all_rois.push_back(rois);
+    }
+
 
 	// save the number of categories
 	categories_nr++;
