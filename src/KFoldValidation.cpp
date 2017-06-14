@@ -2,6 +2,10 @@
 #include <iostream>
 #include <random>
 
+typedef dlib::array < dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel >* > > >		img_array3ptr;
+typedef dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel > > >						img_array2;
+typedef dlib::array < dlib::array2d < dlib::bgr_pixel>* >										img_arrayptr;
+
 //=====================================================================================================================
 /*TODOS:
 class Classifier(with int classNr + class Classifier + class ClassifierOutput)
@@ -18,7 +22,8 @@ KFoldValidation::~KFoldValidation()
 {
 }
 
-int KFoldValidation::create10Fold(std::vector < std::vector < cv::Mat > > &m_all_image_data)
+int KFoldValidation::create10Fold(img_array2& m_all_image_data)
+
 {
 	//get smallest imagenumber of all classes
 
@@ -38,8 +43,8 @@ int KFoldValidation::create10Fold(std::vector < std::vector < cv::Mat > > &m_all
 		{
 			cv::Mat labels;
 			// create Lists for Trainig and Testing
-			cv::Mat     training;
-			cv::Mat     testing;
+			img_arrayptr  training;
+			img_arrayptr  testing;
 			// build training set for each fold
 			for (int trainfold = 1; trainfold <= k; trainfold++)
 			{
@@ -49,10 +54,12 @@ int KFoldValidation::create10Fold(std::vector < std::vector < cv::Mat > > &m_all
 				}
 				for (int c = 0; c < 101; c++)
 				{
-					std::vector < cv::Mat > foldimages = m_initalFolds.at(c).at(trainfold);
+					
+					img_arrayptr foldimages;
+					dlib::assign_image(foldimages,&m_initalFolds[c][trainfold]);
 					for (int i = 0; i < foldimages.size(); i++)
 					{
-						training.push_back(foldimages.at(i));
+						training.push_back(foldimages[i]);
 						signed int label = (classes == c) ? 1 : -1;
 						labels.push_back(label);
 					}
@@ -63,15 +70,19 @@ int KFoldValidation::create10Fold(std::vector < std::vector < cv::Mat > > &m_all
 			// build test set for each fold
 			for (int c = 0; c < 101; c++)
 			{
-				std::vector < cv::Mat > foldimages = m_initalFolds.at(c).at(fold);
+				
+				img_arrayptr foldimages;
+				dlib::assign_image(foldimages, m_initalFolds[c][fold]);
 				for (int i = 0; i < foldimages.size(); i++)
 				{
-					testing.push_back(foldimages.at(i));
+					testing.push_back(foldimages[i]);
 				}
+				
 			}
 
 
 			// train
+			/*
 			cv::Ptr<cv::ml::Boost> classifier = (cv::Ptr<cv::ml::Boost>) (classi_data.getClassifier(1));
 			
 			classifier->train(training, cv::ml::ROW_SAMPLE, labels);
@@ -92,6 +103,7 @@ int KFoldValidation::create10Fold(std::vector < std::vector < cv::Mat > > &m_all
 				}
 
 			}
+			*/
 		}
 		m_classifier.push_back(classi_data);
 	}
@@ -100,28 +112,28 @@ int KFoldValidation::create10Fold(std::vector < std::vector < cv::Mat > > &m_all
 	return 0;
 }
 
-std::vector <std::vector < std::vector < cv::Mat > > >   KFoldValidation::createInitialFolds(int Folds, int numberOfImages, std::vector < std::vector < cv::Mat > > &all_image_data)
+img_array3ptr   KFoldValidation::createInitialFolds(int Folds, int numberOfImages, img_array2 &all_image_data)
 {
-	std::vector <std::vector < std::vector < cv::Mat > > > initialFolds;
+	img_array3ptr initialFolds;
 	initialFolds.resize(101);// for each class produce folds
 
 	// go over each class and gives each object an inital fold
 
 	for (int classes = 0; classes < 101; classes++)
 	{
-		initialFolds.at(classes).resize(numberOfImages); // need to resize/reserve memory for the individual vectors too !
+		initialFolds[classes].resize(numberOfImages); // need to resize/reserve memory for the individual vectors too !
 		int foldcounter = 0;
 		// preparation to get random images for the classifier
 		std::random_device rd;
 		std::mt19937 gen(rd());
-		std::uniform_int_distribution<> dis(1,static_cast<int>(all_image_data.at(classes).size()));
+		std::uniform_int_distribution<> dis(1,static_cast<int>(all_image_data[classes].size()));
 
 		for (int index = 0; index < numberOfImages; index++)
 		{
-			int randomNumber = dis(gen) % all_image_data.at(classes).size();  //otherwise out of range possible
+			int randomNumber = dis(gen) % all_image_data[classes].size();  //otherwise out of range possible
 
-			auto tempImage = all_image_data.at(classes).at(randomNumber);
-			initialFolds.at(classes).at(foldcounter % Folds).push_back(tempImage);// save image for each class and the inital fold 
+			dlib::array2d < dlib::bgr_pixel>* tempImage = &all_image_data[classes][randomNumber];
+			initialFolds[classes][foldcounter % Folds].push_back(tempImage);// save image for each class and the inital fold 
 			foldcounter++;
 		}
 
@@ -131,14 +143,14 @@ std::vector <std::vector < std::vector < cv::Mat > > >   KFoldValidation::create
 	return initialFolds;
 }
 
-int  KFoldValidation::findImageNumberOfSmallestClass(std::vector < std::vector < cv::Mat > > &m_all_image_data)
+int  KFoldValidation::findImageNumberOfSmallestClass(img_array2 &m_all_image_data)
 {
 	int smallestnumber = 1000; // initial number of smallest class
 	int tempnumber; // temp number of images per class
 
 	for (int i = 0 ; i<101;i++)
 	{
-		tempnumber = static_cast<int>(m_all_image_data.at(i).size());
+		tempnumber = static_cast<int>(m_all_image_data[i].size());
 
 		if (tempnumber < smallestnumber)
 		{

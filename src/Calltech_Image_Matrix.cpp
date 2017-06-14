@@ -69,7 +69,7 @@ int Calltech_Image_Matrix::loadImagesFromPath(cv::String path, int width, int he
         std::vector<dlib::rectangle> rois;
         for(int j = 0; j < m_all_image_data[i].size(); j++)
         {
-            dlib::rectangle rect = dlib::rectangle(0,0,width, length);
+            dlib::rectangle rect = dlib::rectangle(0,0,width, height);
             rois.push_back(rect);
         }
         m_all_rois.push_back(rois);
