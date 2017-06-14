@@ -31,7 +31,7 @@ int Calltech_Image_Matrix::loadImagesFromPath(cv::String path)
 		size_t pos = class_name_current.find_last_of("/\\");
 		class_name_current = class_name_current.substr(0, pos);
 		pos = class_name_current.find_last_of("/\\");
-		class_name_current = class_name_current.substr(pos+1);
+		class_name_current = class_name_current.substr(pos + 1);
 
 		// if its a new class, resize our all image vector and increase counter
 		// also store the class name
@@ -52,8 +52,16 @@ int Calltech_Image_Matrix::loadImagesFromPath(cv::String path)
 			std::cout << "Fehler beim lesen des Bildes mit dem Pfad" << all_img_paths.at(i);
 			return 1;
 		}
+		// resize the image, convert it to grayscale and make it flat 
+		
+		cv::Size size = { 400, 400 };
+		cv::resize(img, img, size);
+		/*
+		cv::cvtColor(img, img, cv::COLOR_BGR2GRAY);
+		img.convertTo(img, CV_32F);
+		img = img.reshape(1, 1);
 		// save the image in the right categorie
-
+		*/
 		m_all_image_data.at(categories_nr).push_back(img);
 	}
 
