@@ -46,23 +46,21 @@ int Calltech_Image_Matrix::loadImagesFromPath(cv::String path)
 
 		// load the img and check if data was read in
 
-		cv::Mat img = cv::imread(all_img_paths.at(i));
-		if (img.data == NULL)
+		dlib::array2d< dlib::bgr_pixel > img ;
+		dlib::load_jpeg(img, all_img_paths.at(i));
+		if (img.nc() == 0)
 		{
 			std::cout << "Fehler beim lesen des Bildes mit dem Pfad" << all_img_paths.at(i);
 			return 1;
 		}
-		// resize the image, convert it to grayscale and make it flat 
+		// resize the image
+		dlib::array2d< dlib::bgr_pixel > img_resized(128,128);
 		
-		cv::Size size = { 400, 400 };
-		cv::resize(img, img, size);
-		/*
-		cv::cvtColor(img, img, cv::COLOR_BGR2GRAY);
-		img.convertTo(img, CV_32F);
-		img = img.reshape(1, 1);
+		dlib::resize_image(img, img_resized,dlib::interpolate_quadratic());
+
 		// save the image in the right categorie
-		*/
-		m_all_image_data.at(categories_nr).push_back(img);
+		
+		m_all_image_data[categories_nr].push_back(img_resized);
 	}
 
 	// save the number of categories

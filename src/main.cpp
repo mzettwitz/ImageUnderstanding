@@ -22,7 +22,7 @@ int main(void)
     cv::String path = "data/101_ObjectCategories/*.jpg";
     Calltech_Image_Matrix img_Matrix;
 	if (img_Matrix.loadImagesFromPath(path) != 0) return 0;
-
+	/*
 	cv::Mat img1 = img_Matrix.getIthImageOfJthCategory(1, 1);
 	cv::Mat img2 = img_Matrix.getIthImageOfJthCategory(1, 2);
 	cv::Mat img3 = img_Matrix.getIthImageOfJthCategory(1, 3);
@@ -30,7 +30,7 @@ int main(void)
 	cv::Mat img5 = img_Matrix.getIthImageOfJthCategory(1, 5);
 	cv::Mat img6 = img_Matrix.getIthImageOfJthCategory(2, 1);
 
-	/*
+	
 	// put image matrix in the 10Fold
 	cv::HOGDescriptor hog_Desc(cv::Size(80, 80), cv::Size(20, 20), cv::Size(10, 10), cv::Size(20, 20),9);
 
