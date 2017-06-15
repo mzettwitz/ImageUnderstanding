@@ -15,8 +15,9 @@
 #include <dlib/pixel.h>
 #include <dlib/image_processing/generic_image.h>
 
-typedef dlib::array < dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel >* > > >		img_array3ptr;
-typedef dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel > > >						img_array2;
+typedef std::vector < std::vector < std::vector < dlib::array2d < dlib::bgr_pixel >* > > >		img_array3ptr;
+typedef std::vector < std::vector < dlib::array2d < dlib::bgr_pixel > > >						img_array2;
+typedef std::vector < dlib::array2d < dlib::bgr_pixel>* >										img_arrayptr;
 class KFoldValidation
 {
 public:

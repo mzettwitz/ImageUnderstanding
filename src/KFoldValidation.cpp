@@ -1,10 +1,11 @@
 #include "include/KFoldValidation.h"
 #include <iostream>
 #include <random>
+#include <dlib/gui_widgets.h>
 
-typedef dlib::array < dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel >* > > >		img_array3ptr;
-typedef dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel > > >						img_array2;
-typedef dlib::array < dlib::array2d < dlib::bgr_pixel>* >										img_arrayptr;
+typedef std::vector < std::vector < std::vector < dlib::array2d < dlib::bgr_pixel >* > > >		img_array3ptr;
+typedef std::vector < std::vector < dlib::array2d < dlib::bgr_pixel > > >						img_array2;
+typedef std::vector < dlib::array2d < dlib::bgr_pixel>* >										img_arrayptr;
 
 //=====================================================================================================================
 /*TODOS:
@@ -33,7 +34,7 @@ int KFoldValidation::create10Fold(img_array2& m_all_image_data)
 	for (int classes = 0; classes < 101; classes++) 
 	{
 		std::cout << std::endl << "10Fold class: " << classes; 
-		ClassifierData classi_data = ClassifierData(101, classes, 1); // 1 for bosst Classifier
+		ClassifierData classi_data (101, classes, 1); // 1 for boost Classifier
 		
 		// create intial fold datastructure
 
@@ -55,40 +56,53 @@ int KFoldValidation::create10Fold(img_array2& m_all_image_data)
 				for (int c = 0; c < 101; c++)
 				{
 					
-					img_arrayptr foldimages;
-					dlib::assign_image(foldimages,&m_initalFolds[c][trainfold]);
+					img_arrayptr foldimages = m_initalFolds[c][trainfold];
 					for (int i = 0; i < foldimages.size(); i++)
 					{
 						training.push_back(foldimages[i]);
 						signed int label = (classes == c) ? 1 : -1;
 						labels.push_back(label);
+						break;
 					}
-					
+					break;
 					
 				}
+				break;
 			}
 			// build test set for each fold
 			for (int c = 0; c < 101; c++)
 			{
 				
-				img_arrayptr foldimages;
-				dlib::assign_image(foldimages, m_initalFolds[c][fold]);
+				img_arrayptr foldimages = m_initalFolds[c][fold];
 				for (int i = 0; i < foldimages.size(); i++)
 				{
 					testing.push_back(foldimages[i]);
+					break;
 				}
-				
+				break;
 			}
 
 
 			// train
-			/*
-			cv::Ptr<cv::ml::Boost> classifier = (cv::Ptr<cv::ml::Boost>) (classi_data.getClassifier(1));
+			std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_training_features;
+			hog_training_features.reserve(training.size());
+			for (int i = 0; i < training.size(); i++)
+			{
+				dlib::extract_fhog_features(*training[i], hog_training_features[i]);
+				dlib::image_window win(*training[i]);
+				dlib::image_window winhog(draw_fhog(hog_training_features[i]));
+				int test = 0;
+				break;
+			}
+			//cv::Ptr<cv::ml::Boost> classifier = (cv::Ptr<cv::ml::Boost>) (classi_data.getClassifier(1));
 			
-			classifier->train(training, cv::ml::ROW_SAMPLE, labels);
+			//classifier->train(training, cv::ml::ROW_SAMPLE, labels);
+		//	classi_data.m_detector = classi_data.m_trainer->train(training, )
+
 			
 			// test
-			for (int i = 0; i < testing.size().width; i++)
+			/*
+			for (int i = 0; i < testing.size(); i++)
 			{
 				signed int prediction = classifier->predict(testing.at<int>(i));
 				if (prediction == -1 && i == classes)

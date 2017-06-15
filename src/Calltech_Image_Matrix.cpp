@@ -1,6 +1,12 @@
 #include "include/Calltech_Image_Matrix.h"
 #include <iostream>
 
+typedef std::vector < std::vector < std::vector < dlib::array2d < dlib::bgr_pixel >* > > >		img_array3ptr;
+typedef std::vector < std::vector < dlib::array2d < dlib::bgr_pixel > > >						img_array2;
+typedef std::vector < dlib::array2d < dlib::bgr_pixel>* >										img_arrayptr;
+typedef std::vector < dlib::array2d < dlib::bgr_pixel> >										img_array;
+
+
 Calltech_Image_Matrix::Calltech_Image_Matrix()
 {
 }
@@ -56,7 +62,7 @@ int Calltech_Image_Matrix::loadImagesFromPath(cv::String path, int width, int he
 		// resize the image
 		dlib::array2d< dlib::bgr_pixel > img_resized(128,128);
 		
-		dlib::resize_image(img, img_resized,dlib::interpolate_quadratic());
+		dlib::resize_image(img, img_resized);
 
 		// save the image in the right categorie
 		

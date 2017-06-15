@@ -4,9 +4,17 @@
 
 #pragma once
 
+#include <dlib/svm_threaded.h>
+
+#include <dlib/image_processing.h>
+#include <dlib/data_io.h>
+
+#include <iostream>
+#include <fstream>
+
 #include <opencv2/ml.hpp>
 #include <opencv2/objdetect.hpp>
-
+typedef dlib::scan_fhog_pyramid<dlib::pyramid_down<6> > image_scanner_type;
 class ClassifierData
 {
 private:
@@ -16,6 +24,10 @@ private:
     // cv classifier
   //  union
   //  {
+
+
+	// dlib::svm_c_trainer //TODO: try different trainers and not ones for object detection ;) 
+	
         cv::Ptr<cv::ml::Boost>          m_BoostClassifier;
 //        cv::Ptr<cv::CascadeClassifier>  m_CascadeClassifier;
  //   };
@@ -24,6 +36,13 @@ public:
     ClassifierData ();
     ClassifierData (unsigned int totalClasses, unsigned int id, unsigned int type);
     ~ClassifierData ();
+
+	/*
+	// TODO: fix the public quick and dirty shit
+	image_scanner_type m_scanner;
+	dlib::structural_object_detection_trainer<image_scanner_type>* m_trainer;
+	dlib::object_detector<image_scanner_type> m_detector;
+	*/
 
     // increments error at target position
     void addError(unsigned int i);

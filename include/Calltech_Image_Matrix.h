@@ -17,6 +17,11 @@
 #include <iostream>
 #include <fstream>
 
+typedef std::vector < std::vector < std::vector < dlib::array2d < dlib::bgr_pixel >* > > >		img_array3ptr;
+typedef std::vector < std::vector < std::vector < dlib::array2d < dlib::bgr_pixel > > > >		img_array3;
+typedef std::vector < std::vector < dlib::array2d < dlib::bgr_pixel > > >						img_array2;
+typedef std::vector < dlib::array2d < dlib::bgr_pixel>* >										img_arrayptr;
+typedef std::vector < dlib::array2d < dlib::bgr_pixel> >										img_array;
 class Calltech_Image_Matrix
 {
 public:
@@ -25,8 +30,8 @@ public:
 
     int loadImagesFromPath(cv::String, int width, int height);
 
-	dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel > > >&		getAllImages()							{ return m_all_image_data; }
-	dlib::array< dlib::array2d < dlib::bgr_pixel > >&						getAllImagesOfIthClass(int i)			{ return m_all_image_data[i]; }
+	img_array2&																getAllImages()							{ return m_all_image_data; }
+	img_array&																getAllImagesOfIthClass(int i)			{ return m_all_image_data[i]; }
 	dlib::array2d < dlib::bgr_pixel >&										getIthImageOfJthCategory(int i, int j)	{ return getAllImagesOfIthClass(j)[i]; }
     std::vector<std::vector<dlib::rectangle> >&                             getAllROIs()                            { return m_all_rois; }
 
@@ -37,7 +42,7 @@ public:
 
 
 private:
-	dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel > > >	m_all_image_data;
+	img_array2															m_all_image_data;
     std::vector<std::vector<dlib::rectangle> >                          m_all_rois;
 	std::vector < cv::String >											m_categories_names;
 
