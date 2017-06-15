@@ -42,10 +42,10 @@ int KFoldValidation::create10Fold(img_array2& m_all_image_data)
 
 		for (int fold = 1; fold <= k; fold++)
 		{
-			cv::Mat labels;
+			cv::Mat features, labels, testFeatures;
 			// create Lists for Trainig and Testing
-			img_arrayptr  training;
-			img_arrayptr  testing;
+			std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_training_features(smallestClassSize);
+			std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_test_features(smallestClassSize);
 			// build training set for each fold
 			for (int trainfold = 1; trainfold <= k; trainfold++)
 			{
@@ -59,51 +59,72 @@ int KFoldValidation::create10Fold(img_array2& m_all_image_data)
 					img_arrayptr* foldimages = &m_initalFolds[c][trainfold];
 					for (int i = 0; i < foldimages->size(); i++)
 					{
-						training.push_back((*foldimages)[i]);
+						dlib::extract_fhog_features(*foldimages[i], hog_training_features[i]);
 						signed int label = (classes == c) ? 1 : -1;
 						labels.push_back(label);
 						
-					}
-					
-					
-				}
-				
+						cv::Mat flat_values;
+						for (int j = 0; j < hog_training_features[0].nc(); j++)
+						{
+							for (int k = 0; k < hog_training_features[0].nr(); k++)
+							{
+								for (int l = 0; l < 31; l++)
+								{
+									flat_values.push_back(hog_training_features[i][j][k](l));
+								}
+							}
+						}
+						flat_values = flat_values.reshape(1, 1);
+						flat_values.convertTo(flat_values, CV_32F);
+						features.push_back(flat_values);
+					}					
+				}				
 			}
+
 			// build test set for each fold
 			for (int c = 0; c < 101; c++)
-			{
-				
+			{				
 				img_arrayptr* foldimages = &m_initalFolds[c][fold];
 				for (int i = 0; i < foldimages->size(); i++)
 				{
-					testing.push_back((*foldimages)[i]);
+					dlib::extract_fhog_features((*foldimages)[i], hog_test_features[i]);
+					
+					cv::Mat flat_values;
+					for (int j = 0; j < hog_test_features[0].nc(); j++)
+					{
+						for (int k = 0; k < hog_test_features[0].nr(); k++)
+						{
+							for (int l = 0; l < 31; l++)
+							{
+								flat_values.push_back(hog_test_features[i][j][k](l));
+							}
+						}
+					}
+					flat_values = flat_values.reshape(1, 1);
+					flat_values.convertTo(flat_values, CV_32F);
+					testFeatures.push_back(flat_values);
 				}
 
 			}
 
 
-			// train
-			std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_training_features;
-			hog_training_features.reserve(training.size());
-			for (int i = 0; i < training.size(); i++)
-			{
-				dlib::extract_fhog_features(*training[i], hog_training_features[i]);
-				dlib::image_window win(*training[i]);
-				dlib::image_window winhog(draw_fhog(hog_training_features[i]));
-				int test = 0;
-				
-			}
-			//cv::Ptr<cv::ml::Boost> classifier = (cv::Ptr<cv::ml::Boost>) (classi_data.getClassifier(1));
-			
-			//classifier->train(training, cv::ml::ROW_SAMPLE, labels);
-		//	classi_data.m_detector = classi_data.m_trainer->train(training, )
 
-			
+			cv::Ptr<cv::ml::Boost> classifier = (cv::Ptr<cv::ml::Boost>) (classi_data.getClassifier(1));
+			std::cout << std::endl << "Starting training class: " << classes; 
+			cv::Ptr<cv::ml::TrainData> train_data;
+			train_data = train_data->create(features, cv::ml::ROW_SAMPLE, labels);
+			classifier->train(train_data);
+			std::cout << std::endl << "Finished training class: " << classes;
+		
+
+			cv::Mat results;
+			classifier->predict(testFeatures, results);
+			std::cout << std::endl << "Finished predicting class: " << classes;
 			// test
-			/*
-			for (int i = 0; i < testing.size(); i++)
+			
+			for (int i = 0; i < results.size().height; i++)
 			{
-				signed int prediction = classifier->predict(testing.at<int>(i));
+				signed int prediction = results.at<int>(i,0);
 				if (prediction == -1 && i == classes)
 				{
 					classi_data.addError(classes);
@@ -116,7 +137,12 @@ int KFoldValidation::create10Fold(img_array2& m_all_image_data)
 				}
 
 			}
-			*/
+			std::cout << std::endl << "Printing results for class " << classi_data.getNr() << std::endl;
+			for (int i = 0; i < classi_data.getErrors().size(); i++)
+			{
+				std::cout << classi_data.getErrors()[i];
+			}
+			
 		}
 		m_classifier.push_back(classi_data);
 	}

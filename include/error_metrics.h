@@ -19,9 +19,6 @@
 
 
 
-class ClassifierOutput;
-
-
 // Error per class
 float classError(int classNr, std::vector<int> &errorDistribution)
 {

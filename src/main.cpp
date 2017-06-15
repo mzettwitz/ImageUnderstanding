@@ -25,16 +25,22 @@ int main(void)
     Calltech_Image_Matrix img_Matrix;
 	if (img_Matrix.loadImagesFromPath(path,128,128) != 0) return 0;
 	
+	std::vector<ClassifierData> classi_data(101);
+	for (int i = 0; i < classi_data.size(); i++)
+	{
+		classi_data[i] = ClassifierData(101, i, 1); // 1 for boost Classifier
+	}		
+
 //	KFoldValidation Validation;
 //	Validation.create10Fold(img_Matrix.getAllImages());
 	
-	std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_training_features(20);
-	std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_test_features(20);
+	std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_training_features(50);
+	std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_test_features(50);
 
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < 50; i++)
 	{
 		dlib::extract_fhog_features(img_Matrix.getIthImageOfJthCategory(i,0), hog_training_features[i]);
-		dlib::extract_fhog_features(img_Matrix.getIthImageOfJthCategory(i,i+1), hog_test_features[i]);
+		dlib::extract_fhog_features(img_Matrix.getIthImageOfJthCategory(0,i+1), hog_test_features[i]);
 	//	dlib::image_window win(img_Matrix.getIthImageOfJthCategory(i, 0));
 	//	dlib::image_window winhog(draw_fhog(hog_training_features[i]));
 
@@ -42,11 +48,9 @@ int main(void)
 	}
 
 	cv::Mat features,labels, testFeatures;
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < 50; i++)
 	{
 		cv::Mat flat_values;
-
-		
 		for (int j = 0; j < hog_training_features[0].nc(); j++)
 		{
 			for (int k = 0; k < hog_training_features[0].nr(); k++)
@@ -62,7 +66,7 @@ int main(void)
 		features.push_back(flat_values);	
 	}
 	//===========================TEST
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < 50; i++)
 	{
 		cv::Mat flat_values;
 
@@ -80,6 +84,7 @@ int main(void)
 		flat_values = flat_values.reshape(1, 1);
 		flat_values.convertTo(flat_values, CV_32F);
 		testFeatures.push_back(flat_values);
+		if (i > 47) features.push_back(flat_values);
 	}
 	// ==============================
 	
@@ -89,21 +94,56 @@ int main(void)
 	labels.push_back(1);
 	labels.push_back(1);
 	labels.push_back(1);
-	labels.push_back(-1);
-	labels.push_back(1);
-	labels.push_back(1);
-	labels.push_back(-1);
-	labels.push_back(1);
-	labels.push_back(1);
-	labels.push_back(-1);
 	labels.push_back(1);
 	labels.push_back(1);
 	labels.push_back(1);
 	labels.push_back(1);
 	labels.push_back(1);
 	labels.push_back(1);
-	labels.push_back(-1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
+	labels.push_back(1);
 	
+	labels.push_back(-1);
+	labels.push_back(-1);
+
 	
 	cv::Ptr<cv::ml::Boost> model = model->create();
 	cv::Ptr<cv::ml::TrainData> train_data;
