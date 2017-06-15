@@ -6,6 +6,7 @@
 #include "include/Calltech_Image_Matrix.h"
 #include "include/KFoldValidation.h"
 
+#include <dlib/gui_widgets.h>
 
 int main(void)
 {
@@ -23,9 +24,21 @@ int main(void)
     Calltech_Image_Matrix img_Matrix;
 	if (img_Matrix.loadImagesFromPath(path,128,128) != 0) return 0;
 	
+//	KFoldValidation Validation;
+//	Validation.create10Fold(img_Matrix.getAllImages());
 	
-	
-	
+	std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_training_features(20);
+
+	for (int i = 0; i < 20; i++)
+	{
+		dlib::extract_fhog_features(img_Matrix.getIthImageOfJthCategory(i,0), hog_training_features[i]);
+		dlib::image_window win(img_Matrix.getIthImageOfJthCategory(i, 0));
+		dlib::image_window winhog(draw_fhog(hog_training_features[i]));
+		std::cout << std::endl << "Nr of row: " << hog_training_features[i].nr();
+		std::cout << std::endl << "Nr of columns: " << hog_training_features[i].nc();
+		system("Pause");
+	}
+
 	/*
 
 

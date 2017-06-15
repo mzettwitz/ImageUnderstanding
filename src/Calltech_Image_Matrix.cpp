@@ -1,11 +1,6 @@
 #include "include/Calltech_Image_Matrix.h"
 #include <iostream>
 
-typedef std::vector < std::vector < std::vector < dlib::array2d < dlib::bgr_pixel >* > > >		img_array3ptr;
-typedef std::vector < std::vector < dlib::array2d < dlib::bgr_pixel > > >						img_array2;
-typedef std::vector < dlib::array2d < dlib::bgr_pixel>* >										img_arrayptr;
-typedef std::vector < dlib::array2d < dlib::bgr_pixel> >										img_array;
-
 
 Calltech_Image_Matrix::Calltech_Image_Matrix()
 {

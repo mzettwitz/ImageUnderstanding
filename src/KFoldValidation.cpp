@@ -3,9 +3,9 @@
 #include <random>
 #include <dlib/gui_widgets.h>
 
-typedef std::vector < std::vector < std::vector < dlib::array2d < dlib::bgr_pixel >* > > >		img_array3ptr;
-typedef std::vector < std::vector < dlib::array2d < dlib::bgr_pixel > > >						img_array2;
-typedef std::vector < dlib::array2d < dlib::bgr_pixel>* >										img_arrayptr;
+typedef dlib::array < dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel >* > > >		img_array3ptr;
+typedef dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel > > >						img_array2;
+typedef dlib::array < dlib::array2d < dlib::bgr_pixel>* >										img_arrayptr;
 
 //=====================================================================================================================
 /*TODOS:
@@ -56,30 +56,29 @@ int KFoldValidation::create10Fold(img_array2& m_all_image_data)
 				for (int c = 0; c < 101; c++)
 				{
 					
-					img_arrayptr foldimages = m_initalFolds[c][trainfold];
-					for (int i = 0; i < foldimages.size(); i++)
+					img_arrayptr* foldimages = &m_initalFolds[c][trainfold];
+					for (int i = 0; i < foldimages->size(); i++)
 					{
-						training.push_back(foldimages[i]);
+						training.push_back((*foldimages)[i]);
 						signed int label = (classes == c) ? 1 : -1;
 						labels.push_back(label);
-						break;
+						
 					}
-					break;
+					
 					
 				}
-				break;
+				
 			}
 			// build test set for each fold
 			for (int c = 0; c < 101; c++)
 			{
 				
-				img_arrayptr foldimages = m_initalFolds[c][fold];
-				for (int i = 0; i < foldimages.size(); i++)
+				img_arrayptr* foldimages = &m_initalFolds[c][fold];
+				for (int i = 0; i < foldimages->size(); i++)
 				{
-					testing.push_back(foldimages[i]);
-					break;
+					testing.push_back((*foldimages)[i]);
 				}
-				break;
+
 			}
 
 
@@ -92,7 +91,7 @@ int KFoldValidation::create10Fold(img_array2& m_all_image_data)
 				dlib::image_window win(*training[i]);
 				dlib::image_window winhog(draw_fhog(hog_training_features[i]));
 				int test = 0;
-				break;
+				
 			}
 			//cv::Ptr<cv::ml::Boost> classifier = (cv::Ptr<cv::ml::Boost>) (classi_data.getClassifier(1));
 			
