@@ -3,9 +3,9 @@
 #include <random>
 #include <dlib/gui_widgets.h>
 
-typedef dlib::array < dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel >* > > >		img_array3ptr;
-typedef dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel > > >						img_array2;
-typedef dlib::array < dlib::array2d < dlib::bgr_pixel>* >										img_arrayptr;
+//typedef dlib::array < dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel >* > > >		dlib::array < dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel >* > > >;
+//typedef dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel > > >						dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel > > >;
+//typedef dlib::array < dlib::array2d < dlib::bgr_pixel>* >										dlib::array < dlib::array2d < dlib::bgr_pixel>* >;
 
 //=====================================================================================================================
 /*TODOS:
@@ -16,6 +16,11 @@ reserve capacity of nr_categories in ClassifierOutput()
 //=====================================================================================================================
 KFoldValidation::KFoldValidation()
 {
+	m_error_matrix.resize(101);
+	for (int classes = 0; classes < 101; classes++)
+	{
+		m_error_matrix[classes].resize(101);
+	}
 }
 
 
@@ -23,11 +28,10 @@ KFoldValidation::~KFoldValidation()
 {
 }
 
-int KFoldValidation::create10Fold(img_array2& m_all_image_data)
+int KFoldValidation::create10Fold(dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel > > >& m_all_image_data)
 
 {
 	//get smallest imagenumber of all classes
-
 	smallestClassSize = findImageNumberOfSmallestClass(m_all_image_data);
 	int k = 10; // definition of 10 folds
 	
@@ -56,10 +60,11 @@ int KFoldValidation::create10Fold(img_array2& m_all_image_data)
 				for (int c = 0; c < 101; c++)
 				{
 					
-					img_arrayptr* foldimages = &m_initalFolds[c][trainfold];
+					dlib::array < dlib::array2d < dlib::bgr_pixel>* >* foldimages = &m_initalFolds[c][trainfold];
 					for (int i = 0; i < foldimages->size(); i++)
 					{
-						dlib::extract_fhog_features(*foldimages[i], hog_training_features[i]);
+						
+						dlib::extract_fhog_features(*(*foldimages)[i], hog_training_features[i]);
 						signed int label = (classes == c) ? 1 : -1;
 						labels.push_back(label);
 						
@@ -77,17 +82,17 @@ int KFoldValidation::create10Fold(img_array2& m_all_image_data)
 						flat_values = flat_values.reshape(1, 1);
 						flat_values.convertTo(flat_values, CV_32F);
 						features.push_back(flat_values);
-					}					
+					}
 				}				
 			}
 
 			// build test set for each fold
 			for (int c = 0; c < 101; c++)
 			{				
-				img_arrayptr* foldimages = &m_initalFolds[c][fold];
+				dlib::array < dlib::array2d < dlib::bgr_pixel>* >* foldimages = &m_initalFolds[c][fold];
 				for (int i = 0; i < foldimages->size(); i++)
 				{
-					dlib::extract_fhog_features((*foldimages)[i], hog_test_features[i]);
+					dlib::extract_fhog_features(*(*foldimages)[i], hog_test_features[i]);
 					
 					cv::Mat flat_values;
 					for (int j = 0; j < hog_test_features[0].nc(); j++)
@@ -121,26 +126,30 @@ int KFoldValidation::create10Fold(img_array2& m_all_image_data)
 			classifier->predict(testFeatures, results);
 			std::cout << std::endl << "Finished predicting class: " << classes;
 			// test
-			
+
 			for (int i = 0; i < results.size().height; i++)
 			{
-				signed int prediction = results.at<int>(i,0);
-				if (prediction == -1 && i == classes)
+				float prediction = results.at<float>(i);
+			//	std::cout << std::endl << "Prediction " << prediction; 
+				if (prediction == -1.f && testClasses[i] == classes)
 				{
-					classi_data.addError(classes);
+					//classi_data.addError(classes);
+				//	m_classifier[testClasses[i]].addError(classes);
+					m_error_matrix[testClasses[i]][classes]++;
 				}
 				else
-				if (prediction == 1 && i != classes)
+				if (prediction == 1.f && testClasses[i] != classes)
 				{
-					classi_data.addError(classes);
-
+					//classi_data.addError(classes);
+				//	m_classifier[testClasses[i]].addError(classes);
+					m_error_matrix[testClasses[i]][classes]++;
 				}
 
 			}
 			std::cout << std::endl << "Printing results for class " << classi_data.getNr() << std::endl;
-			for (int i = 0; i < classi_data.getErrors().size(); i++)
+			for (int i = 0; i < 101; i++)
 			{
-				std::cout << classi_data.getErrors()[i];
+				std::cout << " " << m_error_matrix[classes][i];
 			}
 			
 		}
@@ -151,9 +160,9 @@ int KFoldValidation::create10Fold(img_array2& m_all_image_data)
 	return 0;
 }
 
-img_array3ptr   KFoldValidation::createInitialFolds(int Folds, int numberOfImages, img_array2 &all_image_data)
+dlib::array < dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel >* > > >   KFoldValidation::createInitialFolds(int Folds, int numberOfImages, dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel > > > &all_image_data)
 {
-	img_array3ptr initialFolds;
+	dlib::array < dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel >* > > > initialFolds;
 	initialFolds.resize(101);// for each class produce folds
 
 	// go over each class and gives each object an inital fold
@@ -169,8 +178,9 @@ img_array3ptr   KFoldValidation::createInitialFolds(int Folds, int numberOfImage
 
 		for (int index = 0; index < numberOfImages; index++)
 		{
-			int randomNumber = dis(gen) % all_image_data[classes].size();  //otherwise out of range possible
+			testClasses.push_back(classes);	// store class information
 
+			int randomNumber = dis(gen) % all_image_data[classes].size();  //otherwise out of range possible
 			dlib::array2d < dlib::bgr_pixel>* tempImage = &all_image_data[classes][randomNumber];
 			initialFolds[classes][foldcounter % Folds].push_back(tempImage);// save image for each class and the inital fold 
 			foldcounter++;
@@ -182,7 +192,7 @@ img_array3ptr   KFoldValidation::createInitialFolds(int Folds, int numberOfImage
 	return initialFolds;
 }
 
-int  KFoldValidation::findImageNumberOfSmallestClass(img_array2 &m_all_image_data)
+int  KFoldValidation::findImageNumberOfSmallestClass(dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel > > > &m_all_image_data)
 {
 	int smallestnumber = 1000; // initial number of smallest class
 	int tempnumber; // temp number of images per class

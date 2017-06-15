@@ -4,7 +4,8 @@
 ClassifierData::ClassifierData()
 {
     m_classNumber = -1;
-    m_errors.resize(101);
+	for (int i = 0; i < 101; i++)
+		m_errors.push_back(0);
 	
   //  m_BoostClassifier = cv::ml::Boost::create();
 
@@ -23,7 +24,8 @@ ClassifierData::ClassifierData(unsigned int totalClasses, unsigned int id, unsig
 	m_BoostClassifier = cv::ml::Boost::create();
 
     m_classNumber = id;
-    m_errors.reserve(totalClasses);
+	for (int i = 0; i < totalClasses; i++)
+		m_errors.push_back(0);
     switch(type)
     {
     case 1:

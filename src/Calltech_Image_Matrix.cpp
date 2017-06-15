@@ -55,7 +55,7 @@ int Calltech_Image_Matrix::loadImagesFromPath(cv::String path, int width, int he
 			return 1;
 		}
 		// resize the image
-		dlib::array2d< dlib::bgr_pixel > img_resized(128,128);
+		dlib::array2d< dlib::bgr_pixel > img_resized(width,height);
 		
 		dlib::resize_image(img, img_resized);
 

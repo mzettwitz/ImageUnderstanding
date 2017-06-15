@@ -30,7 +30,8 @@ public:
 	std::vector< ClassifierData > getClassifierData() { return m_classifier; }
 private:
 	int smallestClassSize;
-
+	std::vector<int> testClasses;
+	std::vector < std::vector < int > > m_error_matrix;
 	img_array3ptr	m_initalFolds; // class + fold + image
 	std::vector< ClassifierData > m_classifier; // vector of all classifieres
 };
