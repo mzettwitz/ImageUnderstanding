@@ -29,14 +29,15 @@ public:
 	int findImageNumberOfSmallestClass(img_array2 &m_all_image_data);
 	img_array3ptr   createInitialFolds(int Folds,int numberOfImages, img_array2 &all_image_data);
 	
-	std::vector< ClassifierData > getClassifierData() { return m_classifier; }
+    std::vector< ClassifierData >& getClassifierData() { return m_classifier; }
 private:
-    std::mutex m_mute;
+    std::mutex mute;
 	int smallestClassSize;
 	std::vector<int> testClasses;
 	std::vector < std::vector < int > > m_error_matrix;
 	img_array3ptr	m_initalFolds; // class + fold + image
 	std::vector< ClassifierData > m_classifier; // vector of all classifieres
+    void prepareTraining(int class_i, ClassifierData &classi_data, int k, dlib::array<dlib::array<dlib::array2d<dlib::bgr_pixel> > > &m_all_image_data);
     void trainClass(int class_i, ClassifierData &classi_data, int k, int fold);
 };
 #endif

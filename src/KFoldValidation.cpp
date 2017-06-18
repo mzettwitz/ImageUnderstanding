@@ -24,10 +24,13 @@ KFoldValidation::KFoldValidation()
     }
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
 
 KFoldValidation::~KFoldValidation()
 {
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
 
 int KFoldValidation::create10Fold(dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel > > >& m_all_image_data)
 {
@@ -35,27 +38,71 @@ int KFoldValidation::create10Fold(dlib::array < dlib::array < dlib::array2d < dl
     smallestClassSize = findImageNumberOfSmallestClass(m_all_image_data);
     int k = 10; // definition of 10 folds
 
-    ClassifierData threadedClassifiers [std::thread::hardware_concurrency()];
+    int numThreads = std::thread::hardware_concurrency();
+    ClassifierData threadedClassifiers [numThreads];
+    int numOps = 0;
+    std::thread threadArr[numThreads];
+
+    //mute.lock();
+    m_initalFolds = createInitialFolds(k, smallestClassSize, m_all_image_data);
+    //mute.unlock()
 
     int class_i = 0;
     while (class_i < 101)
     {
-        std::cout << std::endl << "10Fold class: " << class_i;
-        ClassifierData classi_data (101, class_i, 1); // 1 for boost Classifier
+        //ClassifierData classi_data (101, class_i, 1); // 1 for boost Classifier
+        //prepareTraining(class_i, classi_data, k, m_all_image_data);
 
-        // create initial fold datastructure
-        m_initalFolds = createInitialFolds(k, smallestClassSize, m_all_image_data);
 
-        for(int fold = 1; fold <= k; fold++)
-            trainClass(class_i, classi_data, k, fold);
+        // more operations/iterations than threads => use all threads
+        if((101-class_i)/numThreads  > 0)
+        {
+            numOps = numThreads;
+            for(int i = 0; i < numOps; i++)
+            {
+                threadedClassifiers[i] = ClassifierData (101, class_i, 1); // 1 for boost Classifier
+                threadArr[i] = std::thread(&KFoldValidation::prepareTraining,this, class_i,std::ref(threadedClassifiers[i]),k, std::ref(m_all_image_data)); //function pointer, object, param
+                class_i++;
 
-        m_classifier.push_back(classi_data);
-        class_i++;
+#ifdef __unix__     // load balancing on unix systems
+                cpu_set_t cpuset;
+                CPU_ZERO(&cpuset);
+                CPU_SET(i, &cpuset);
+                pthread_setaffinity_np(threadArr[i].native_handle(), sizeof(cpu_set_t), &cpuset);
+#endif
+            }
+        }
+        // less operations/iterations than threads => use remaining number of threads
+        else
+        {
+            numOps = (101-class_i) % numThreads;
+            for(int i = 0; i < numOps; i++)
+            {
+                threadArr[i] = std::thread(&KFoldValidation::prepareTraining,this, class_i,std::ref(threadedClassifiers[i]),k, std::ref(m_all_image_data)); //function pointer, object, param
+                class_i++;
+
+#ifdef __unix__     // load balancing on unix systems
+                cpu_set_t cpuset;
+                CPU_ZERO(&cpuset);
+                CPU_SET(i, &cpuset);
+                pthread_setaffinity_np(threadArr[i].native_handle(), sizeof(cpu_set_t), &cpuset);
+#endif
+            }
+        }
+
+        // join threads
+        for(int i = 0; i < numOps; i++)
+            threadArr[i].join();
+        for(int i = 0; i < numOps; i++)
+            m_classifier.push_back(threadedClassifiers[i]);
+
     }
 
 
     return 0;
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
 
 dlib::array < dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel >* > > >
 KFoldValidation::createInitialFolds
@@ -91,6 +138,8 @@ KFoldValidation::createInitialFolds
     return initialFolds;
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
+
 int  KFoldValidation::findImageNumberOfSmallestClass(dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel > > > &m_all_image_data)
 {
     int smallestnumber = 1000; // initial number of smallest class
@@ -108,6 +157,8 @@ int  KFoldValidation::findImageNumberOfSmallestClass(dlib::array < dlib::array <
     return smallestnumber;
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
+
 void KFoldValidation::trainClass(int class_i, ClassifierData& classi_data, int k, int fold)
 {
     cv::Mat features, labels, testFeatures;
@@ -117,13 +168,16 @@ void KFoldValidation::trainClass(int class_i, ClassifierData& classi_data, int k
     int cellsize = 16;
     int colPadding = 4;
     int rowPadding = 4;
+
     // build training set for each fold
+    //std::cout <<std::endl << "extract Features for training";
     for (int trainfold = 1; trainfold <= k; trainfold++)
     {
         if (trainfold == fold)
         {
             continue;
         }
+        mute.lock();
         for (int c = 0; c < 101; c++)
         {
 
@@ -134,6 +188,7 @@ void KFoldValidation::trainClass(int class_i, ClassifierData& classi_data, int k
                 dlib::extract_fhog_features(*(*foldimages)[i], hog_training_features[i],cellsize, rowPadding, colPadding);
                 signed int label = (class_i == c) ? 1 : -1;
                 labels.push_back(label);
+
 
                 cv::Mat flat_values;
                 for (int j = 0; j < hog_training_features[0].nc(); j++)
@@ -151,11 +206,14 @@ void KFoldValidation::trainClass(int class_i, ClassifierData& classi_data, int k
                 features.push_back(flat_values);
             }
         }
+        mute.unlock();
     }
 
     // build test set for each fold
+    //std::cout <<std::endl << "extract Features for testing";
     for (int c = 0; c < 101; c++)
     {
+        mute.lock();
         dlib::array < dlib::array2d < dlib::bgr_pixel>* >* foldimages = &m_initalFolds[c][fold];
         for (unsigned int i = 0; i < foldimages->size(); i++)
         {
@@ -176,19 +234,20 @@ void KFoldValidation::trainClass(int class_i, ClassifierData& classi_data, int k
             flat_values.convertTo(flat_values, CV_32F);
             testFeatures.push_back(flat_values);
         }
+        mute.unlock();
     }
 
+    //std::cout << std::endl << "Starting training class: " << class_i;
     cv::Ptr<cv::ml::Boost> classifier = (cv::Ptr<cv::ml::Boost>) (classi_data.getClassifier(1));
-    std::cout << std::endl << "Starting training class: " << class_i;
     cv::Ptr<cv::ml::TrainData> train_data;
     train_data = train_data->create(features, cv::ml::ROW_SAMPLE, labels);
     classifier->train(train_data);
-    std::cout << std::endl << "Finished training class: " << class_i;
+    //std::cout << std::endl << "Finished training class: " << class_i;
 
 
     cv::Mat results;
     classifier->predict(testFeatures, results);
-    std::cout << std::endl << "Finished predicting class: " << class_i;
+    //std::cout << std::endl << "Finished predicting class: " << class_i;
     // test
 
     for (int i = 0; i < results.size().height; i++)
@@ -217,53 +276,14 @@ void KFoldValidation::trainClass(int class_i, ClassifierData& classi_data, int k
     }
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
 
-
-/*
-      // setup multithreading
-        int numThreads = std::thread::hardware_concurrency();
-        int numOps = 0;
-        int fold = 1;
-        std::thread threadArr[numThreads];
-while (fold <= k)
+void KFoldValidation::prepareTraining(int class_i, ClassifierData &classi_data, int k, dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel > > > &m_all_image_data)
 {
-    // more operations/iterations than threads => use all threads
-    if((k - fold)/numThreads  > 0)
-    {
-        numOps = numThreads;
-        for(int i = 0; i < numOps; i++)
-        {
-            threadArr[i] = std::thread(&KFoldValidation::trainClass,this, class_i,std::ref(classi_data),k,fold); //function pointer, object, param
-            //numObjs--;
-            fold++;
 
-#ifdef __unix__     // load balancing on unix systems
-            cpu_set_t cpuset;
-            CPU_ZERO(&cpuset);
-            CPU_SET(i, &cpuset);
-            pthread_setaffinity_np(threadArr[i].native_handle(), sizeof(cpu_set_t), &cpuset);
-#endif
-        }
-    }
-    // less operations/iterations than threads => use remaining number of threads
-    else
-    {
-        numOps = (k - fold) % numThreads;
-        for(int i = 0; i < numOps; i++)
-        {
-            threadArr[i] = std::thread(&KFoldValidation::trainClass,this, class_i,std::ref(classi_data),k,fold); //function pointer, object, param
-            //numObjs--;
-            fold++;
+    std::cout << std::endl << "10Fold class: " << class_i;
+    // create initial fold datastructure;
 
-#ifdef __unix__     // load balancing on unix systems
-            cpu_set_t cpuset;
-            CPU_ZERO(&cpuset);
-            CPU_SET(i, &cpuset);
-            pthread_setaffinity_np(threadArr[i].native_handle(), sizeof(cpu_set_t), &cpuset);
-#endif
-        }
-    }
-    // join threads
-    for(int i = 0; i < numOps; i++)
-        threadArr[i].join();
-*/
+    for(int fold = 1; fold <= k; fold++)
+        trainClass(class_i, classi_data, k, fold);
+}
