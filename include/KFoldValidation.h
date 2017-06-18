@@ -15,6 +15,8 @@
 #include <dlib/pixel.h>
 #include <dlib/image_processing/generic_image.h>
 
+#include <mutex>
+
 typedef dlib::array < dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel >* > > >		img_array3ptr;
 typedef dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel > > >						img_array2;
 typedef dlib::array < dlib::array2d < dlib::bgr_pixel>* >										img_arrayptr;
@@ -29,10 +31,12 @@ public:
 	
 	std::vector< ClassifierData > getClassifierData() { return m_classifier; }
 private:
+    std::mutex m_mute;
 	int smallestClassSize;
 	std::vector<int> testClasses;
 	std::vector < std::vector < int > > m_error_matrix;
 	img_array3ptr	m_initalFolds; // class + fold + image
 	std::vector< ClassifierData > m_classifier; // vector of all classifieres
+    void trainClass(int class_i, ClassifierData &classi_data, int k, int fold);
 };
 #endif
