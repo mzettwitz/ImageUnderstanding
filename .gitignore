@@ -29,3 +29,8 @@
 *.app
 
 *.user
+
+*.txt~
+
+
+\.gitignore~

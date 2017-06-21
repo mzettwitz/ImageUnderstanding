@@ -1,6 +1,7 @@
 #include "include/Calltech_Image_Matrix.h"
 #include <iostream>
 
+
 Calltech_Image_Matrix::Calltech_Image_Matrix()
 {
 }
@@ -11,7 +12,7 @@ Calltech_Image_Matrix::~Calltech_Image_Matrix()
 }
 
 // load all images in a folder recursively
-int Calltech_Image_Matrix::loadImagesFromPath(cv::String path)
+int Calltech_Image_Matrix::loadImagesFromPath(cv::String path, int width, int height)
 {
 	// get all image paths 
 	std::vector < cv::String  > all_img_paths;
@@ -31,7 +32,7 @@ int Calltech_Image_Matrix::loadImagesFromPath(cv::String path)
 		size_t pos = class_name_current.find_last_of("/\\");
 		class_name_current = class_name_current.substr(0, pos);
 		pos = class_name_current.find_last_of("/\\");
-		class_name_current = class_name_current.substr(pos+1);
+		class_name_current = class_name_current.substr(pos + 1);
 
 		// if its a new class, resize our all image vector and increase counter
 		// also store the class name
@@ -46,16 +47,35 @@ int Calltech_Image_Matrix::loadImagesFromPath(cv::String path)
 
 		// load the img and check if data was read in
 
-		cv::Mat img = cv::imread(all_img_paths.at(i));
-		if (img.data == NULL)
+		dlib::array2d< dlib::bgr_pixel > img ;
+		dlib::load_jpeg(img, all_img_paths.at(i));
+		if (img.nc() == 0)
 		{
 			std::cout << "Fehler beim lesen des Bildes mit dem Pfad" << all_img_paths.at(i);
 			return 1;
 		}
-		// save the image in the right categorie
+		// resize the image
+		dlib::array2d< dlib::bgr_pixel > img_resized(width,height);
+		
+		dlib::resize_image(img, img_resized);
 
-		m_all_image_data.at(categories_nr).push_back(img);
+		// save the image in the right categorie
+		
+		m_all_image_data[categories_nr].push_back(img_resized);
 	}
+
+    // setup the ROI vector
+    for(int i = 0; i < m_all_image_data.size(); i++)
+    {
+        std::vector<dlib::rectangle> rois;
+        for(int j = 0; j < m_all_image_data[i].size(); j++)
+        {
+            dlib::rectangle rect = dlib::rectangle(0,0,width, height);
+            rois.push_back(rect);
+        }
+        m_all_rois.push_back(rois);
+    }
+
 
 	// save the number of categories
 	categories_nr++;
