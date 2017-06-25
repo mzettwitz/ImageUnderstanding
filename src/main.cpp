@@ -26,22 +26,17 @@ int main(void)
 
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
 
-    KFoldValidation Validation;
-    Validation.create10Fold(img_Matrix.getAllImages());
-    //auto confMat = confMatrix(Validation.getClassifierData(),img_Matrix);
+    KFoldValidation validation;
+    validation.create10Fold(img_Matrix.getAllImages());
+    //auto confMat = confMatrix(validation,img_Matrix);
     //printConfMatrix(confMat);
 
     std::cout << "\n\nRESULTS\n";
-    for(int i = 0 ; i < Validation.getClassifierData().size(); i++)
-    {
-        std:: cout << endl;
-        for(int j = 0; j < Validation.getClassifierData().at(i).getErrors().size(); j++)
-            std:: cout << Validation.getClassifierData().at(i).getErrors().at(j);
-    }
+    validation.printErrorMatrix();
 
     high_resolution_clock::time_point t2 = high_resolution_clock::now();
     auto duration = duration_cast<seconds>( t2 - t1 ).count();
-    cerr << duration;
+    cerr << "time to compute: " << duration << " seconds";
 
 
 

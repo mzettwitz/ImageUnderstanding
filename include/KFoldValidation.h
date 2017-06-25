@@ -28,8 +28,11 @@ public:
 	int create10Fold(img_array2 &m_all_image_data_of_class);
 	int findImageNumberOfSmallestClass(img_array2 &m_all_image_data);
 	img_array3ptr   createInitialFolds(int Folds,int numberOfImages, img_array2 &all_image_data);
+    void printErrorMatrix();
 	
     std::vector< ClassifierData >& getClassifierData() { return m_classifier; }
+    std::vector < std::vector < int > >& getErrorMatrix() {return m_error_matrix;}
+
 private:
     std::mutex mute;
 	int smallestClassSize;
