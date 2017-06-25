@@ -142,7 +142,7 @@ KFoldValidation::createInitialFolds
 
 int  KFoldValidation::findImageNumberOfSmallestClass(dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel > > > &m_all_image_data)
 {
-    int smallestnumber = 1000; // initial number of smallest class
+    int smallestnumber = INT32_MAX; // initial number of smallest class
     int tempnumber; // temp number of images per class
 
     for (int i = 0 ; i<101;i++)
@@ -256,17 +256,16 @@ void KFoldValidation::trainClass(int class_i, ClassifierData& classi_data, int k
         //	std::cout << std::endl << "Prediction " << prediction;
         if (prediction == -1.f && testClasses[i] == class_i)
         {
-            //classi_data.addError(classes);
+            classi_data.addError(class_i);
             //	m_classifier[testClasses[i]].addError(classes);
             m_error_matrix[testClasses[i]][class_i]++;
         }
-        else
-            if (prediction == 1.f && testClasses[i] != class_i)
-            {
-                //classi_data.addError(classes);
-                //	m_classifier[testClasses[i]].addError(classes);
-                m_error_matrix[testClasses[i]][class_i]++;
-            }
+        else if (prediction == 1.f && testClasses[i] != class_i)
+        {
+            classi_data.addError(class_i);
+            //	m_classifier[testClasses[i]].addError(classes);
+            m_error_matrix[testClasses[i]][class_i]++;
+        }
 
     }
     std::cout << std::endl << "Printing results for class " << classi_data.getNr() << std::endl;
@@ -286,4 +285,16 @@ void KFoldValidation::prepareTraining(int class_i, ClassifierData &classi_data, 
 
     for(int fold = 1; fold <= k; fold++)
         trainClass(class_i, classi_data, k, fold);
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void KFoldValidation::printErrorMatrix()
+{
+    for(uint i = 0 ; i < m_error_matrix.size(); i++)
+    {
+        std:: cout << std::endl;
+        for(uint j = 0; j < m_error_matrix[i].size(); j++)
+            std:: cout << m_error_matrix[i][j] << " ";
+    }
 }

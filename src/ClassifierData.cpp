@@ -24,7 +24,7 @@ ClassifierData::ClassifierData(unsigned int totalClasses, unsigned int id, unsig
 	m_BoostClassifier = cv::ml::Boost::create();
 
     m_classNumber = id;
-	for (int i = 0; i < totalClasses; i++)
+    for (uint i = 0; i < totalClasses; i++)
 		m_errors.push_back(0);
     switch(type)
     {

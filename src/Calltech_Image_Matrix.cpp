@@ -22,7 +22,7 @@ int Calltech_Image_Matrix::loadImagesFromPath(cv::String path, int width, int he
 	size_t categories_nr = -1;
 
 	// loop over all paths
-	for (int i = 0; i < all_img_paths.size(); i++)
+    for (uint i = 0; i < all_img_paths.size(); i++)
 	{
 		// find the class name from the right substring of the img path
 		// hope this is plattform independet but not sure
@@ -65,10 +65,10 @@ int Calltech_Image_Matrix::loadImagesFromPath(cv::String path, int width, int he
 	}
 
     // setup the ROI vector
-    for(int i = 0; i < m_all_image_data.size(); i++)
+    for(uint i = 0; i < m_all_image_data.size(); i++)
     {
         std::vector<dlib::rectangle> rois;
-        for(int j = 0; j < m_all_image_data[i].size(); j++)
+        for(uint j = 0; j < m_all_image_data[i].size(); j++)
         {
             dlib::rectangle rect = dlib::rectangle(0,0,width, height);
             rois.push_back(rect);
