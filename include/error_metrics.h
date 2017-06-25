@@ -65,14 +65,15 @@ inline std::vector< std::vector <float> > confMatrix(KFoldValidation &validation
     {
         float totalErrors = 0.f;
         for(int j = 0; j < nrCats; j++)
-            totalErrors += (float)validation.getErrorMatrix().at(i).at(j);//    .classifiers.at(i).getErrors().at(j);
+            totalErrors += (float)validation.getErrorMatrix().at(i).at(j);
 
         // iterate over all class errors
         for(int j = 0; i < nrCats; j++)
-            confMat[i][j] = (float)(validation.getErrorMatrix().at(i).at(j))/totalErrors;
+            if(totalErrors!= 0)
+                confMat[i][j] = (float)(validation.getErrorMatrix().at(i).at(j))/totalErrors;
 
         // average error for class i
-        //confMat[i][nrCats] = classError(i, validation.getErrorMatrix().at(i));
+        confMat[i][nrCats] = classError(i, validation.getErrorMatrix().at(i));
     }
     return confMat;
 }

@@ -61,8 +61,8 @@ int KFoldValidation::create10Fold(dlib::array < dlib::array < dlib::array2d < dl
             for(int i = 0; i < numOps; i++)
             {
                 threadedClassifiers[i] = ClassifierData (101, class_i, 1); // 1 for boost Classifier
-                threadArr[i] = std::thread(&KFoldValidation::prepareTraining,this, class_i,std::ref(threadedClassifiers[i]),k, std::ref(m_all_image_data)); //function pointer, object, param
-                class_i++;
+                threadArr[i] = std::thread(&KFoldValidation::prepareTraining,this, class_i++,std::ref(threadedClassifiers[i]),k, std::ref(m_all_image_data)); //function pointer, object, param
+                //class_i++;
 
 #ifdef __unix__     // load balancing on unix systems
                 cpu_set_t cpuset;
@@ -78,8 +78,8 @@ int KFoldValidation::create10Fold(dlib::array < dlib::array < dlib::array2d < dl
             numOps = (101-class_i) % numThreads;
             for(int i = 0; i < numOps; i++)
             {
-                threadArr[i] = std::thread(&KFoldValidation::prepareTraining,this, class_i,std::ref(threadedClassifiers[i]),k, std::ref(m_all_image_data)); //function pointer, object, param
-                class_i++;
+                threadArr[i] = std::thread(&KFoldValidation::prepareTraining,this, class_i++,std::ref(threadedClassifiers[i]),k, std::ref(m_all_image_data)); //function pointer, object, param
+                //class_i++;
 
 #ifdef __unix__     // load balancing on unix systems
                 cpu_set_t cpuset;
@@ -254,17 +254,17 @@ void KFoldValidation::trainClass(int class_i, ClassifierData& classi_data, int k
     {
         float prediction = results.at<float>(i);
         //	std::cout << std::endl << "Prediction " << prediction;
-        if (prediction == -1.f && testClasses[i] == class_i)
+        if (prediction == -1.f && i/((int)results.size().height/101) == class_i)
         {
             classi_data.addError(class_i);
             //	m_classifier[testClasses[i]].addError(classes);
-            m_error_matrix[testClasses[i]][class_i]++;
+            m_error_matrix[i/((int)results.size().height/101)][class_i]++;
         }
-        else if (prediction == 1.f && testClasses[i] != class_i)
+        else if (prediction == 1.f && i/((int)results.size().height/101) != class_i)
         {
             classi_data.addError(class_i);
             //	m_classifier[testClasses[i]].addError(classes);
-            m_error_matrix[testClasses[i]][class_i]++;
+            m_error_matrix[i/((int)results.size().height/101)][class_i]++;
         }
 
     }
@@ -279,8 +279,9 @@ void KFoldValidation::trainClass(int class_i, ClassifierData& classi_data, int k
 
 void KFoldValidation::prepareTraining(int class_i, ClassifierData &classi_data, int k, dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel > > > &m_all_image_data)
 {
-
+    mute.lock();
     std::cout << std::endl << "10Fold class: " << class_i;
+    mute.unlock();
     // create initial fold datastructure;
 
     for(int fold = 1; fold <= k; fold++)
