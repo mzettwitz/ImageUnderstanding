@@ -39,9 +39,9 @@ int KFoldValidation::create10Fold(dlib::array < dlib::array < dlib::array2d < dl
     int k = 10; // definition of 10 folds
 
     int numThreads = std::thread::hardware_concurrency();
-    ClassifierData threadedClassifiers [numThreads];
+    std::vector<ClassifierData> threadedClassifiers(numThreads);
     int numOps = 0;
-    std::thread threadArr[numThreads];
+    std::vector<std::thread> threadArr(numThreads);
 
     //mute.lock();
     m_initalFolds = createInitialFolds(k, smallestClassSize, m_all_image_data);
