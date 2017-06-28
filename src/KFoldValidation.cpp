@@ -254,7 +254,7 @@ void KFoldValidation::trainClass(int class_i, ClassifierData& classi_data, int k
     {
         float prediction = results.at<float>(i);
         //	std::cout << std::endl << "Prediction " << prediction;
-        if (prediction == -1.f && i/((int)results.size().height/101) == class_i)
+        if (prediction == 1.f && i/((int)results.size().height/101) == class_i)
         {
             classi_data.addError(class_i);
             //	m_classifier[testClasses[i]].addError(classes);

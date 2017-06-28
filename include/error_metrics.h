@@ -36,16 +36,16 @@ inline float classError(int classNr, std::vector<int> &errorDistribution)
 inline void printConfMatrix(std::vector< std::vector <float> > confMat)
 {
     std::cout << "\n\n\n==========================================\nRESULTS\n";
-    std::cout << "\t";
+    std::cout << " ";
     for(unsigned int i = 0; i< confMat.size();i++)
-        std::cout << "in class " << i <<"\t";
+        std::cout << /*"in class "*/" " << i <<" ";
     std::cout << std::endl;
 
     for(unsigned int i = 0; i < confMat.size();i++)
     {
-        std::cout << "class " << i;
+        std::cout << /*"class "*/ " " << i;
         for(unsigned int j = 0; j < confMat[i].size(); j++)
-             std::cout << "\t" << j;
+             std::cout << " " << j;
     }
 }
 
@@ -68,9 +68,11 @@ inline std::vector< std::vector <float> > confMatrix(KFoldValidation &validation
             totalErrors += (float)validation.getErrorMatrix().at(i).at(j);
 
         // iterate over all class errors
-        for(int j = 0; i < nrCats; j++)
+        for(int j = 0; j < nrCats; j++)
+        {
             if(totalErrors!= 0)
                 confMat[i][j] = (float)(validation.getErrorMatrix().at(i).at(j))/totalErrors;
+        }
 
         // average error for class i
         confMat[i][nrCats] = classError(i, validation.getErrorMatrix().at(i));
