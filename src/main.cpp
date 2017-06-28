@@ -28,8 +28,8 @@ int main(void)
 
     KFoldValidation validation;
     validation.create10Fold(img_Matrix.getAllImages());
-    //auto confMat = confMatrix(validation,img_Matrix);
-    //printConfMatrix(confMat);
+    auto confMat = confMatrix(validation,img_Matrix);
+    printConfMatrix(confMat);
 
     std::cout << "\n\nRESULTS\n";
     validation.printErrorMatrix();
