@@ -59,7 +59,7 @@ inline void printConfMatrix(std::vector< std::vector <float> > confMat)
         avgError += confMat[i][confMat.size()];
     avgError /= confMat.size();
     std::cout << "\n\nAverage Error: " << avgError;
-    std::cout << "\nAveragePrediction: " << 1.f - avgError;
+    std::cout << "\nAverage Prediction: " << 1.f - avgError;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
