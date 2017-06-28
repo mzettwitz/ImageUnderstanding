@@ -4,12 +4,14 @@
 ClassifierData::ClassifierData()
 {
     m_classNumber = -1;
-	for (int i = 0; i < 101; i++)
+    for (int i = 0; i < 102; i++)
 		m_errors.push_back(0);
 	
   //  m_BoostClassifier = cv::ml::Boost::create();
 
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
 
 ClassifierData::ClassifierData(unsigned int totalClasses, unsigned int id, unsigned int type)
 {
@@ -39,14 +41,20 @@ ClassifierData::ClassifierData(unsigned int totalClasses, unsigned int id, unsig
     }
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
+
 ClassifierData::~ClassifierData()
 {
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
 
 void ClassifierData::addError(unsigned int i)
 {
     m_errors.at(i)++;
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
 
 cv::Ptr<cv::ml::Boost>  ClassifierData::getClassifier(unsigned int type)
 {
@@ -64,10 +72,14 @@ cv::Ptr<cv::ml::Boost>  ClassifierData::getClassifier(unsigned int type)
 	
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
+
 unsigned int ClassifierData::getNr()
 {
     return m_classNumber;
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
 
 std::vector<int>& ClassifierData::getErrors()
 {

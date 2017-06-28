@@ -26,13 +26,15 @@ int main(void)
 
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
 
-    KFoldValidation validation;
+    KFoldValidation validation(img_Matrix.getNrCategories());
     validation.create10Fold(img_Matrix.getAllImages());
+
+    validation.printErrorMatrix();
+    std::cout << "\n\nPlain RESULTS\n";
+
     auto confMat = confMatrix(validation,img_Matrix);
     printConfMatrix(confMat);
 
-    std::cout << "\n\nRESULTS\n";
-    validation.printErrorMatrix();
 
     high_resolution_clock::time_point t2 = high_resolution_clock::now();
     auto duration = duration_cast<seconds>( t2 - t1 ).count();

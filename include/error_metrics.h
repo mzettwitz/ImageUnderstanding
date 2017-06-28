@@ -31,26 +31,49 @@ inline float classError(int classNr, std::vector<int> &errorDistribution)
     return err/(float)errorDistribution.size();
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
 
 // Print confusion matrix
 inline void printConfMatrix(std::vector< std::vector <float> > confMat)
 {
     std::cout << "\n\n\n==========================================\nRESULTS\n";
     std::cout << " ";
-    for(unsigned int i = 0; i< confMat.size();i++)
+    for(unsigned int i = 0; i < confMat.size();i++)
         std::cout << /*"in class "*/" " << i <<" ";
-    std::cout << std::endl;
 
     for(unsigned int i = 0; i < confMat.size();i++)
     {
-        std::cout << /*"class "*/ " " << i;
+        std::cout << std::endl <</*"class "*/ i << " ";
         for(unsigned int j = 0; j < confMat[i].size(); j++)
-             std::cout << " " << j;
+        {
+            if(j == confMat[i].size()-1)
+                std::cout << "\t" << confMat[i][j];
+            else
+                std::cout << " " << confMat[i][j];
+        }
+
     }
+
+    float avgError = 0.f;
+    for(uint i = 0; i < confMat.size(); i++)
+        avgError += confMat[i][confMat.size()];
+    avgError /= confMat.size();
+    std::cout << "\n\nAverage Error: " << avgError;
+    std::cout << "\nAveragePrediction: " << 1.f - avgError;
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
 
-// Confusion Matrix
+inline bool storeMatrixOnDisk(std::vector< std::vector <float> > confMat)
+{
+    // TODO
+    return true;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+
+// Compute confusion Matrix
 inline std::vector< std::vector <float> > confMatrix(KFoldValidation &validation, Calltech_Image_Matrix &imageMat)
 {
 
@@ -63,19 +86,25 @@ inline std::vector< std::vector <float> > confMatrix(KFoldValidation &validation
     // iterate over all classes
     for(int i = 0; i < nrCats; i++)
     {
-        float totalErrors = 0.f;
-        for(int j = 0; j < nrCats; j++)
-            totalErrors += (float)validation.getErrorMatrix().at(i).at(j);
-
-        // iterate over all class errors
+        float totalPredictions_i = 0.f;
         for(int j = 0; j < nrCats; j++)
         {
-            if(totalErrors!= 0)
-                confMat[i][j] = (float)(validation.getErrorMatrix().at(i).at(j))/totalErrors;
+            if(j==i)
+                totalPredictions_i += validation.findImageNumberOfSmallestClass(imageMat.getAllImages());
+            else
+                totalPredictions_i += (float)validation.getErrorMatrix().at(i).at(j);
+        }
+
+
+        // iterate over all classes and normalize predicted results
+        for(int j = 0; j < nrCats; j++)
+        {
+            if(totalPredictions_i!= 0)
+                confMat[i][j] = (float)(validation.getErrorMatrix().at(i).at(j))/totalPredictions_i;
         }
 
         // average error for class i
-        confMat[i][nrCats] = classError(i, validation.getErrorMatrix().at(i));
+        confMat[i][nrCats] = 1.f - confMat[i][i];//classError(i, validation.getErrorMatrix().at(i));
     }
     return confMat;
 }
