@@ -6,10 +6,13 @@ Calltech_Image_Matrix::Calltech_Image_Matrix()
 {
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
 
 Calltech_Image_Matrix::~Calltech_Image_Matrix()
 {
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
 
 // load all images in a folder recursively
 int Calltech_Image_Matrix::loadImagesFromPath(cv::String path, int width, int height)

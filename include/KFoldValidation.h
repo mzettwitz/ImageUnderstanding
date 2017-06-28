@@ -23,7 +23,8 @@ typedef dlib::array < dlib::array2d < dlib::bgr_pixel>* >										img_arrayptr;
 class KFoldValidation
 {
 public:
-	KFoldValidation();
+    KFoldValidation();
+    KFoldValidation(int nrClasses);
 	~KFoldValidation();
 	int create10Fold(img_array2 &m_all_image_data_of_class);
 	int findImageNumberOfSmallestClass(img_array2 &m_all_image_data);
@@ -37,6 +38,7 @@ private:
     std::mutex mute;
 	int smallestClassSize;
 	std::vector<int> testClasses;
+    int m_NrClasses;
 	std::vector < std::vector < int > > m_error_matrix;
 	img_array3ptr	m_initalFolds; // class + fold + image
 	std::vector< ClassifierData > m_classifier; // vector of all classifieres
