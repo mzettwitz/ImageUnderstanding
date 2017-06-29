@@ -29,7 +29,7 @@ private:
 	// dlib::svm_c_trainer //TODO: try different trainers and not ones for object detection ;) 
 	
         cv::Ptr<cv::ml::Boost>          m_BoostClassifier;
-//        cv::Ptr<cv::CascadeClassifier>  m_CascadeClassifier;
+
  //   };
 
 public:
@@ -37,12 +37,7 @@ public:
     ClassifierData (unsigned int totalClasses, unsigned int id, unsigned int type);
     ~ClassifierData ();
 
-	/*
-	// TODO: fix the public quick and dirty shit
-	image_scanner_type m_scanner;
-	dlib::structural_object_detection_trainer<image_scanner_type>* m_trainer;
-	dlib::object_detector<image_scanner_type> m_detector;
-	*/
+
 
     // increments error at target position
     void addError(unsigned int i);

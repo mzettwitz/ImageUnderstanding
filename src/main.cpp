@@ -6,7 +6,7 @@
 
 #include <dlib/opencv.h>
 #include <dlib/gui_widgets.h>
-
+#include <dlib/svm.h>
 #include "include/Calltech_Image_Matrix.h"
 #include "include/KFoldValidation.h"
 #include "include/error_metrics.h"
@@ -26,6 +26,7 @@ int main(void)
 
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
 
+	
     KFoldValidation validation(img_Matrix.getNrCategories());
     validation.create10Fold(img_Matrix.getAllImages());
 
@@ -41,7 +42,7 @@ int main(void)
     cerr << "time to compute: " << duration << " seconds";
 
 
-
+	
     /*
     std::cout << "\n\n\n==========================================\nRESULTS\n";
     std::cout << "\t";
@@ -54,22 +55,89 @@ int main(void)
         std::cout << "class " << i;
         for(int j = 0; j < confMat[i].size(); j++)
              std::cout << "\t" << j;
-    }*/
-    /*
+    }
+    
 
-    std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_training_features(10);
-    std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_test_features(10);
-
-    for (int i = 0; i < 10; i++)
+    std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_training_features(30);
+    std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_test_features(30);
+	
+    for (int i = 0; i < 30; i++)
     {
         dlib::extract_fhog_features(img_Matrix.getIthImageOfJthCategory(i,0), hog_training_features[i]);
-    //	dlib::extract_fhog_features(img_Matrix.getIthImageOfJthCategory(0,i+1), hog_test_features[i]);
-        dlib::image_window win(img_Matrix.getIthImageOfJthCategory(i, 0));
-        dlib::image_window winhog(draw_fhog(hog_training_features[i]));
-        system("Pause");
-        std::cout << std::endl << "Features generated";
+    	dlib::extract_fhog_features(img_Matrix.getIthImageOfJthCategory(0,i+1), hog_test_features[i]);
+  //      dlib::image_window win(img_Matrix.getIthImageOfJthCategory(i, 0));
+  //      dlib::image_window winhog(draw_fhog(hog_training_features[i]));
+  //      system("Pause");
+   //     std::cout << std::endl << "Features generated";
     }
+	std::cout <<  std::endl << hog_test_features.at(0)[0].nc() << std::endl;
+	std::vector < std::vector < float > > flatt_features;
+	std::vector < std::vector < float > > flatt_features_test;
+	for (int i = 0; i < 30; i++)
+	{
+		std::vector < float > temp_vec;
+		std::vector < float > temp_vec_test;
+		for (int j = 0; j < 6; j++)
+		{
+			for (int k = 0; k < 6 ; k++)
+			{
+				for (int l = 0; l < 31; l++)
+				{
+					temp_vec.push_back(hog_training_features[i][j][k](l));
+					temp_vec_test.push_back(hog_test_features[i][j][k](l));
+				}
+			}	
+		}
+		flatt_features.push_back(temp_vec);
+		flatt_features_test.push_back(temp_vec_test);
+	}
 
+	
+	// SVM Trainer Proof of Concept
+	typedef dlib::matrix < float , 1116, 1 > sample_type;
+	typedef dlib::radial_basis_kernel<sample_type> kernel_type;
+
+	std::vector<sample_type> samples;
+	std::vector<float> labels;
+	for (int i = 0; i < 30; i++)
+	{
+		dlib::matrix < float, 1116, 1 > temp_mat;
+		dlib::matrix < float, 1116, 1 > temp_mat_tr;
+		for (int j = 0; j < 1116; j++)
+		{
+			temp_mat(j) = (flatt_features[i].at(j));
+			temp_mat_tr(j) = (flatt_features_test[i].at(j));
+		}
+		samples.push_back(temp_mat);
+		samples.push_back(temp_mat_tr);
+		labels.push_back(1.0);
+		labels.push_back(-1.0);
+	}
+
+	dlib::svm_nu_trainer<kernel_type> trainer;
+	trainer.set_kernel(kernel_type(0.15625));
+	typedef dlib::decision_function<kernel_type> funct_type;
+
+	std::vector<sample_type> samples_less;
+	for (int i = 0; i < 50; i++)
+	{
+		samples_less.push_back(samples.at(i));
+	}
+	std::vector<sample_type> test;
+	for (int i = 50; i < 60; i++)
+	{
+		test.push_back(samples.at(i));
+	}
+	trainer.set_kernel(kernel_type(0.15625));
+	trainer.set_nu(0.15625);
+	funct_type learned_function = trainer.train(samples_less, labels);
+	std::cout << "\nnumber of support vectors in our learned_function is " << learned_function.basis_vectors.size() << std::endl;
+
+	for (int i = 0; i < 10; i+=2)
+	{
+		cout << "This is a +1 class example, the classifier output is " << learned_function(test.at(i)) << endl;
+		cout << "This is a -1 class example, the classifier output is " << learned_function(test.at(i+1)) << endl;
+	}
     /*
     cv::Mat features,labels, testFeatures;
     for (int i = 0; i < 50; i++)
