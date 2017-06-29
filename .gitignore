@@ -36,3 +36,9 @@
 \.gitignore~
 
 *.pdf
+
+*.aux
+
+*.log
+
+*.gz

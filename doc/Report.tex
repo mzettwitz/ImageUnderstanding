@@ -1,24 +1,35 @@
 \documentclass[a4paper,10pt]{article}
 
-\title{Student  Project -- Picture Classification}
+\title{ Student Project 2017 \\ CalTech101 Image Classification}
 \author{David Schulte, Hannes Martinke, Martin Zettwitz}
 
 \begin{document}
 \maketitle
-\section{Image Preprocessing}
 
+\section{Introduction}
+ short problem description + environment
+
+\section{Preprocessing}
 Image resize to 64x64. Why?
 Maybe image adding for better and more classification images
-\section{Feature Generation}
+
+\section{Features}
+\subsection{Feature Generation}
 HOG features with cellsize 16. what is the solution with other cellsizes?
-Haarlike features
-\section{Feature Reduction}
-PCA?
+LBP
+
+\subsection{Feature Reduction}
+PCA? Image Resizing
+
 \section{Classifier}
-Boost Classifier vs. SVM
-\section{Validation}
+\paragraph{AdaBoost}
+\paragraph{SVM}
+
+\section{Training and Validation}
 10 Fold
-\section{Results (Confusion Matrix)}
-Matrix + Results 
+
+\section{Results}
+Matrix + Conclusion 
+
 \end{document}
 
