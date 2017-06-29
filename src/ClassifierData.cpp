@@ -1,6 +1,8 @@
 #include "include/ClassifierData.h"
 #include <thread>
 
+
+
 ClassifierData::ClassifierData()
 {
     m_classNumber = -1;
@@ -23,8 +25,10 @@ ClassifierData::ClassifierData(unsigned int totalClasses, unsigned int id, unsig
 	m_trainer->be_verbose();
 	m_trainer->set_epsilon(0.01);	// TODO: make this as a parameter  IMPORTANT
 	*/
+#ifdef USE_BOOST
 	m_BoostClassifier = cv::ml::Boost::create();
-
+#else
+#endif
     m_classNumber = id;
     for (uint i = 0; i < totalClasses; i++)
 		m_errors.push_back(0);
@@ -56,9 +60,15 @@ void ClassifierData::addError(unsigned int i)
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-cv::Ptr<cv::ml::Boost>  ClassifierData::getClassifier(unsigned int type)
+#ifdef USE_BOOST 
+	cv::Ptr<cv::ml::Boost>  ClassifierData::getClassifier(unsigned int type)
+	{
+		return m_BoostClassifier;
+#else
+	dlib::svm_nu_trainer<kernel_type> ClassifierData::getClassifier(unsigned int type)
 {
-	return m_BoostClassifier;
+		return m_svmClassifier;
+#endif
     switch (type) {
     case 1:
     //    return m_BoostClassifier;
