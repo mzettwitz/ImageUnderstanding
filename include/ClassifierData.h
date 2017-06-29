@@ -5,21 +5,20 @@
 #pragma once
 
 #include <dlib/svm_threaded.h>
-
+#include <dlib/svm.h>
 #include <dlib/image_processing.h>
 #include <dlib/data_io.h>
-
-#include <iostream>
-#include <fstream>
 
 #include <opencv2/ml.hpp>
 #include <opencv2/objdetect.hpp>
 
-#include <dlib/svm.h>
+#include <iostream>
+#include <fstream>
 
-#define USE_BOOST   //define if u want to use BOOST Classifier  change also in KFoldValidation.h
+
+//#define USE_BOOST   //define if u want to use BOOST Classifier  change also in KFoldValidation.h
+
 typedef dlib::scan_fhog_pyramid<dlib::pyramid_down<6> > image_scanner_type;
-
 typedef dlib::matrix < float, 1116, 1 > sample_type;
 typedef dlib::radial_basis_kernel<sample_type> kernel_type;
 typedef dlib::decision_function<kernel_type> funct_type;
@@ -29,19 +28,13 @@ private:
     unsigned int        m_classNumber;
     std::vector<int>    m_errors;
 
-    // cv classifier
-  //  union
-  //  {
-
-
-	// dlib::svm_c_trainer //TODO: try different trainers and not ones for object detection ;) 
+    // dlib::svm_c_trainer //TODO: try different trainers and not ones for object detection ;)
 #ifdef USE_BOOST	
-        cv::Ptr<cv::ml::Boost>          m_BoostClassifier;
+    cv::Ptr<cv::ml::Boost>          m_BoostClassifier;
 #else
-	dlib::svm_nu_trainer<kernel_type> m_svmClassifier;
+    dlib::svm_nu_trainer<kernel_type> m_svmClassifier;
 #endif
 
- //   };
 
 public:
     ClassifierData ();
@@ -54,9 +47,9 @@ public:
     void addError(unsigned int i);
     // returns void pointer to underlying classifier
 #ifdef USE_BOOST
-	cv::Ptr<cv::ml::Boost>  getClassifier(unsigned int type);
+    cv::Ptr<cv::ml::Boost>  getClassifier(unsigned int type);
 #else
-	dlib::svm_nu_trainer<kernel_type> getClassifier(unsigned int type);
+    dlib::svm_nu_trainer<kernel_type> getClassifier(unsigned int type);
 #endif
     unsigned int getNr();
     std::vector<int>& getErrors();
