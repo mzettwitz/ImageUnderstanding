@@ -10,16 +10,6 @@
 #include "include/KFoldValidation.h"
 
 
-//=====================================================================================================================
-/*TODOS:
- class Classifier(with int classNr + class Classifier + class ClassifierOutput)
- class ClassifierOutput: std::vector<int> classifiedAs, std::vector<int> errorDistribution
- reserve capacity of nr_categories in ClassifierOutput()
-*/
-//=====================================================================================================================
-
-
-
 // Error per class
 inline float classError(int classNr, std::vector<int> &errorDistribution)
 {
@@ -34,7 +24,7 @@ inline float classError(int classNr, std::vector<int> &errorDistribution)
 // ---------------------------------------------------------------------------------------------------------------------
 
 // Print confusion matrix
-inline void printConfMatrix(std::vector< std::vector <float> > confMat)
+inline void printConfMatrix(std::vector< std::vector <float> > &confMat)
 {
     std::cout << "\n\n\n==========================================\nRESULTS\n";
     std::cout << " ";
@@ -54,6 +44,18 @@ inline void printConfMatrix(std::vector< std::vector <float> > confMat)
 
     }
 
+    float avgError = 0.f;
+    for(uint i = 0; i < confMat.size(); i++)
+        avgError += confMat[i][confMat.size()];
+    avgError /= confMat.size();
+    std::cout << "\n\nAverage Error: " << avgError;
+    std::cout << "\nAverage Prediction: " << 1.f - avgError;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+inline void printResults(std::vector< std::vector <float> > &confMat)
+{
     float avgError = 0.f;
     for(uint i = 0; i < confMat.size(); i++)
         avgError += confMat[i][confMat.size()];
