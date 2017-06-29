@@ -171,13 +171,18 @@ int  KFoldValidation::findImageNumberOfSmallestClass(dlib::array < dlib::array <
 
 void KFoldValidation::trainClass(int class_i, ClassifierData& classi_data, int k, int fold)
 {
-    cv::Mat features, labels, testFeatures;
+#ifdef USE_BOOST 
+	  cv::Mat features, labels, testFeatures;
+#else
+	std::vector < sample_type > features, testFeatures;
+	std::vector < float > labels;
+#endif
     // create Lists for Trainig and Testing
     std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_training_features(smallestClassSize);
     std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_test_features(smallestClassSize);
-    int cellsize = 16;
-    int colPadding = 4;
-    int rowPadding = 4;
+    int cellsize = 8;
+    int colPadding = 1;
+    int rowPadding = 1;
 
     // build training set for each fold
     //std::cout <<std::endl << "extract Features for training";
@@ -199,7 +204,7 @@ void KFoldValidation::trainClass(int class_i, ClassifierData& classi_data, int k
                 signed int label = (class_i == c) ? 1 : -1;
                 labels.push_back(label);
 
-
+#ifdef USE_BOOST
                 cv::Mat flat_values;
                 for (int j = 0; j < hog_training_features[0].nc(); j++)
                 {
@@ -214,7 +219,29 @@ void KFoldValidation::trainClass(int class_i, ClassifierData& classi_data, int k
                 flat_values = flat_values.reshape(1, 1);
                 flat_values.convertTo(flat_values, CV_32F);
                 features.push_back(flat_values);
+#else
+				std::vector< float > flat_values ;
+				for (int j = 0; j < hog_training_features[0].nc(); j++)
+				{
+					for (int k = 0; k < hog_training_features[0].nr(); k++)
+					{
+						for (int l = 0; l < 31; l++)
+						{
+							flat_values.push_back(hog_training_features[i][j][k](l));
+						}
+					}
+				}
+				dlib::matrix < float, 1116, 1 > temp_mat;
+				for (int j = 0; j < flat_values.size() ; j++)
+				{
+					temp_mat(j) = (flat_values.at(j));
+					
+				}
+
+				features.push_back(temp_mat);		
+#endif
             }
+
         }
         mute.unlock();
     }
@@ -228,7 +255,7 @@ void KFoldValidation::trainClass(int class_i, ClassifierData& classi_data, int k
         for (unsigned int i = 0; i < foldimages->size(); i++)
         {
             dlib::extract_fhog_features(*(*foldimages)[i], hog_test_features[i],cellsize, rowPadding, colPadding);
-
+#ifdef USE_BOOST
             cv::Mat flat_values;
             for (int j = 0; j < hog_test_features[0].nc(); j++)
             {
@@ -243,10 +270,30 @@ void KFoldValidation::trainClass(int class_i, ClassifierData& classi_data, int k
             flat_values = flat_values.reshape(1, 1);
             flat_values.convertTo(flat_values, CV_32F);
             testFeatures.push_back(flat_values);
+#else
+			std::vector< float > flat_values;
+			for (int j = 0; j < hog_test_features[0].nc(); j++)
+			{
+				for (int k = 0; k < hog_test_features[0].nr(); k++)
+				{
+					for (int l = 0; l < 31; l++)
+					{
+						flat_values.push_back(hog_test_features[i][j][k](l));
+					}
+				}
+			}
+			dlib::matrix < float, 1116, 1 > temp_mat;
+			for (int j = 0; j < 1116; j++)
+			{
+				temp_mat(j) = (flat_values.at(j));
+
+			}
+			testFeatures.push_back(temp_mat);
+#endif
         }
         mute.unlock();
     }
-
+#ifdef USE_BOOST
     //std::cout << std::endl << "Starting training class: " << class_i;
     cv::Ptr<cv::ml::Boost> classifier = (cv::Ptr<cv::ml::Boost>) (classi_data.getClassifier(1));
     cv::Ptr<cv::ml::TrainData> train_data;
@@ -263,20 +310,68 @@ void KFoldValidation::trainClass(int class_i, ClassifierData& classi_data, int k
     for (int i = 0; i < results.size().height; i++)
     {
         float prediction = results.at<float>(i);
-        //	std::cout << std::endl << "Prediction " << prediction;
-        if (prediction == 1.f && i/((int)results.size().height/m_NrClasses) == class_i)
-        {
-            classi_data.addError(class_i);
-            //	m_classifier[testClasses[i]].addError(classes);
-            m_error_matrix[i/((int)results.size().height/m_NrClasses)][class_i]++;
-        }
-        else if (prediction == 1.f && i/((int)results.size().height/m_NrClasses) != class_i)
-        {
-            classi_data.addError(class_i);
-            //	m_classifier[testClasses[i]].addError(classes);
-            m_error_matrix[i/((int)results.size().height/m_NrClasses)][class_i]++;
-        }
+		//	std::cout << std::endl << "Prediction " << prediction;
+		if (prediction == 1.f && i / ((int)results.size().height / m_NrClasses) == class_i)
+		{
+			classi_data.addError(class_i);
+			//	m_classifier[testClasses[i]].addError(classes);
+			m_error_matrix[i / ((int)results.size().height / m_NrClasses)][class_i]++;
+		}
+		else if (prediction == 1.f && i / ((int)results.size().height / m_NrClasses) != class_i)
+		{
+			classi_data.addError(class_i);
+			//	m_classifier[testClasses[i]].addError(classes);
+			m_error_matrix[i / ((int)results.size().height / m_NrClasses)][class_i]++;
+		}
 
+#else
+	const double max_nu = dlib::maximum_nu(labels);
+	double nu = 0.015;
+	dlib::svm_nu_trainer<kernel_type> classifier = classi_data.getClassifier(1);
+	classifier.set_nu(nu);
+	classifier.set_kernel(kernel_type(nu));
+	std::cout << "nu was set to : " << classifier.get_nu() << std::endl;
+	std::cout << "Max nu: " << max_nu << std::endl;
+	funct_type learned_function;
+	try
+	{
+		learned_function = classifier.train(features, labels);
+	}
+	catch (dlib::error e )
+	{
+		std::cout << std::endl << e.what() << std::endl;
+	}
+	std::vector < float > results;
+	for (int i = 0; i < testFeatures.size(); i++)
+	{
+		float prediction = learned_function(testFeatures.at(i));
+		if (prediction > 0)
+		{
+			results.push_back(1.f);
+		}
+		else
+		{
+			results.push_back(-1.f);
+		}
+	}
+	for (int i = 0; i < results.size(); i++)
+	{
+		float prediction = results.at(i);
+	
+        //	std::cout << std::endl << "Prediction " << prediction;
+        if (prediction == 1.f && i/((int)results.size()/m_NrClasses) == class_i)
+        {
+            classi_data.addError(class_i);
+            //	m_classifier[testClasses[i]].addError(classes);
+            m_error_matrix[i/((int)results.size()/m_NrClasses)][class_i]++;
+        }
+        else if (prediction == 1.f && i/((int)results.size()/m_NrClasses) != class_i)
+        {
+            classi_data.addError(class_i);
+            //	m_classifier[testClasses[i]].addError(classes);
+            m_error_matrix[i/((int)results.size()/m_NrClasses)][class_i]++;
+        }
+#endif
     }
     std::cout << std::endl << "Printing results for class " << classi_data.getNr() << std::endl;
     for (int i = 0; i < m_NrClasses; i++)
