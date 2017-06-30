@@ -65,12 +65,18 @@ In our approach an feature reduction is served by resampling the images in the p
 With the limitation of the pixel matrix and the using of the HOG Features the length of the feature vector is standardized for each sample.
 
 \section{Classifier}
+
+After detecting the feature vectors for each sample, these samples of each class must be trained and following tested to evaluate the accuracy of the whole classification approach. 
+Therefore we implement two different classifier. 
 \paragraph{AdaBoost}
+
 \paragraph{SVM}
 
 \section{Training and Validation}
-10 Fold
-
+To validate our approach we used a 10-fold cross validation. 
+These method divides the data set in 10 parts of equal size and in the following 9 fold will be trained and the last is for testing the classifier.
+These is an iterative process and will be performed until each fold was tested.
+Important in the evaluation of the classifier we measures the average accuracy of prediction the correct class.
 \section{Results}
 Matrix + Conclusion 
 
