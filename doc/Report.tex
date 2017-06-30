@@ -19,7 +19,7 @@ Out first approaches were a complete implementation in \emph{Opencv}, but becaus
 The workflow of our procedure is illustrated in \autoref{fig:workflow}. and consists the following 4 steps: image preprocessing, features, classifier, validation.
 These steps will be explained in the next sections.
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \centering
 \includegraphics[scale=1]{images/Workflow.pdf}
 \caption{Our Worklow for the image classification. We organized the input data sets and prepare each image for the subsequent feature generation.
@@ -28,8 +28,19 @@ This feature are integrated in the classifier and the validation is performed in
 \end{figure}
 
 \section{Preprocessing}
-Image resize to 64x64. Why?
-Maybe image adding for better and more classification images
+
+Several images in the \emph{CalTech 101} dataset exist with different image sizes. 
+This follows in different feature vector lengths in the feature generation.
+To avoid this and to standardizes the vector length we resized each image in the data set to 64x64.
+An additional reason for the resizing is the duration time of the complete algorithm. 
+We tried to get a good trade-off between accuracy and duration time and this is a good solution after analyzing several image classes.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[scale=0.5]{images/preprocessing.png}
+\caption{Illustration of the image resampling with an example image of a barrel.}
+\label{fig:resize}
+\end{figure}
 
 \section{Features}
 \subsection{Feature Generation}
