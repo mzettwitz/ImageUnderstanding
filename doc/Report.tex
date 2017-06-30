@@ -28,7 +28,7 @@ This feature are integrated in the classifier and the validation is performed in
 \end{figure}
 
 \section{Preprocessing}
-
+\label{sec:preprocessing}
 Several images in the \emph{CalTech 101} dataset exist with different image sizes. 
 This follows in different feature vector lengths in the feature generation.
 To avoid this and to standardizes the vector length we resized each image in the data set to 64x64.
@@ -56,10 +56,13 @@ We tested the cell size the 16 and 8 for feature generation. We do not want a ze
 We used the features extracting algorithm of \emph{dlib}, which calculates an 31 dimensional feature vector for each cell.
 Two example images with the different parameters is shown in figure...
 \paragraph{Local Binary Patterns}
-
+??
 
 \subsection{Feature Reduction}
 
+The calculated features can be reduced by using for example principle component analysis(PCA) or other techniques.
+In our approach an feature reduction is served by resampling the images in the preprocessing step (recall \autoref{sec:preprocessing}).
+With the limitation of the pixel matrix and the using of the HOG Features the length of the feature vector is standardized for each sample.
 
 \section{Classifier}
 \paragraph{AdaBoost}
