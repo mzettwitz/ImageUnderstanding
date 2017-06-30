@@ -7,50 +7,108 @@
 // Includes
 #include "include/Calltech_Image_Matrix.h"
 #include "include/ClassifierData.h"
+#include "include/KFoldValidation.h"
 
-
-//=====================================================================================================================
-/*TODOS:
- class Classifier(with int classNr + class Classifier + class ClassifierOutput)
- class ClassifierOutput: std::vector<int> classifiedAs, std::vector<int> errorDistribution
- reserve capacity of nr_categories in ClassifierOutput()
-*/
-//=====================================================================================================================
-
-
+#include <iostream>
+#include <fstab.h>
+#include <time.h>
 
 // Error per class
 inline float classError(int classNr, std::vector<int> &errorDistribution)
 {
     float err = 0.f;
     // summed errors / total errors
-    for(int i = 0; i < errorDistribution.size(); i++)
+    for(unsigned int i = 0; i < errorDistribution.size(); i++)
         err += (float)errorDistribution.at(i);
 
     return err/(float)errorDistribution.size();
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
 
 // Print confusion matrix
-inline void printConfMatrix(std::vector< std::vector <float> > confMat)
+inline void printConfMatrix(std::vector< std::vector <float> > &confMat)
 {
     std::cout << "\n\n\n==========================================\nRESULTS\n";
-    std::cout << "\t";
-    for(int i = 0; i< confMat.size();i++)
-        std::cout << "in class " << i <<"\t";
-    std::cout << std::endl;
+    std::cout << " ";
+    for(unsigned int i = 0; i < confMat.size();i++)
+        std::cout << /*"in class "*/" " << i <<" ";
 
-    for(int i = 0; i < confMat.size();i++)
+    for(unsigned int i = 0; i < confMat.size();i++)
     {
-        std::cout << "class " << i;
-        for(int j = 0; j < confMat[i].size(); j++)
-             std::cout << "\t" << j;
+        std::cout << std::endl <</*"class "*/ i << " ";
+        for(unsigned int j = 0; j < confMat[i].size(); j++)
+        {
+            if(j == confMat[i].size()-1)
+                std::cout << "\t" << confMat[i][j];
+            else
+                std::cout << " " << confMat[i][j];
+        }
+
     }
+
+    float avgError = 0.f;
+    for(uint i = 0; i < confMat.size(); i++)
+        avgError += confMat[i][confMat.size()];
+    avgError /= confMat.size();
+    std::cout << "\n\nAverage Error: " << avgError;
+    std::cout << "\nAverage Prediction: " << 1.f - avgError;
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
 
-// Confusion Matrix
-inline std::vector< std::vector <float> > confMatrix(std::vector<ClassifierData> &classifiers, Calltech_Image_Matrix &imageMat)
+inline void printResults(std::vector< std::vector <float> > &confMat)
+{
+    float avgError = 0.f;
+    for(uint i = 0; i < confMat.size(); i++)
+        avgError += confMat[i][confMat.size()];
+    avgError /= confMat.size();
+    std::cout << "\n\nAverage Error: " << avgError;
+    std::cout << "\nAverage Prediction: " << 1.f - avgError;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+inline bool storeMatrixOnDisk(std::vector< std::vector <float> > confMat, int time, std::string setup)
+{
+    std::ofstream file;
+    std::string filename = "confMatrix" + setup + ".csv";
+    file.open(filename);
+
+    file << "\nSetup: " << setup << std::endl;
+    file << "\nComputation time in seconds: \t" << time;
+    file << "\n\n\n==========================================\nRESULTS\n\t";
+    for(unsigned int i = 0; i < confMat.size();i++)
+        file << "as " << i << "\t";
+    file << "error";
+
+    for(unsigned int i = 0; i < confMat.size();i++)
+    {
+        file << std::endl << "class " << i;
+        for(unsigned int j = 0; j < confMat[i].size(); j++)
+        {
+            if(j == confMat[i].size()-1)
+                file << "\t" << confMat[i][j];
+            else
+                file << "\t" << confMat[i][j];
+        }
+    }
+
+    float avgError = 0.f;
+    for(uint i = 0; i < confMat.size(); i++)
+        avgError += confMat[i][confMat.size()];
+    avgError /= confMat.size();
+    file << "\n\nAverage Error: \t" << avgError;
+    file << "\nAverage Prediction: \t" << 1.f - avgError;
+
+    file.close();
+    return true;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+// Compute confusion Matrix
+inline std::vector< std::vector <float> > confMatrix(KFoldValidation &validation, Calltech_Image_Matrix &imageMat)
 {
 
     int nrCats = imageMat.getNrCategories();
@@ -62,16 +120,25 @@ inline std::vector< std::vector <float> > confMatrix(std::vector<ClassifierData>
     // iterate over all classes
     for(int i = 0; i < nrCats; i++)
     {
-        float totalErrors = 0.f;
+        float totalPredictions_i = 0.f;
         for(int j = 0; j < nrCats; j++)
-            totalErrors += (float)classifiers.at(i).getErrors().at(j);
+        {
+            if(j==i)
+                totalPredictions_i += validation.findImageNumberOfSmallestClass(imageMat.getAllImages());
+            else
+                totalPredictions_i += (float)validation.getErrorMatrix().at(i).at(j);
+        }
 
-        // iterate over all class errors
-        for(int j = 0; i < nrCats; j++)
-            confMat[i][j] = (float)(classifiers.at(i).getErrors().at(j))/totalErrors;
 
-        // average error for class j
-        confMat[i][nrCats] = classError(classifiers.at(i).getNr(), classifiers.at(i).getErrors());
+        // iterate over all classes and normalize predicted results
+        for(int j = 0; j < nrCats; j++)
+        {
+            if(totalPredictions_i!= 0)
+                confMat[i][j] = (float)(validation.getErrorMatrix().at(i).at(j))/totalPredictions_i;
+        }
+
+        // average error for class i
+        confMat[i][nrCats] = 1.f - confMat[i][i];//classError(i, validation.getErrorMatrix().at(i));
     }
     return confMat;
 }
