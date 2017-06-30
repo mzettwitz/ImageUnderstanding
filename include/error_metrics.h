@@ -9,6 +9,9 @@
 #include "include/ClassifierData.h"
 #include "include/KFoldValidation.h"
 
+#include <iostream>
+#include <fstab.h>
+#include <time.h>
 
 // Error per class
 inline float classError(int classNr, std::vector<int> &errorDistribution)
@@ -66,14 +69,43 @@ inline void printResults(std::vector< std::vector <float> > &confMat)
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-inline bool storeMatrixOnDisk(std::vector< std::vector <float> > confMat)
+inline bool storeMatrixOnDisk(std::vector< std::vector <float> > confMat, int time, std::string setup)
 {
-    // TODO
+    std::ofstream file;
+    std::string filename = "confMatrix" + setup + ".csv";
+    file.open(filename);
+
+    file << "\nSetup: " << setup << std::endl;
+    file << "\nComputation time in seconds: \t" << time;
+    file << "\n\n\n==========================================\nRESULTS\n\t";
+    for(unsigned int i = 0; i < confMat.size();i++)
+        file << "as " << i << "\t";
+    file << "error";
+
+    for(unsigned int i = 0; i < confMat.size();i++)
+    {
+        file << std::endl << "class " << i;
+        for(unsigned int j = 0; j < confMat[i].size(); j++)
+        {
+            if(j == confMat[i].size()-1)
+                file << "\t" << confMat[i][j];
+            else
+                file << "\t" << confMat[i][j];
+        }
+    }
+
+    float avgError = 0.f;
+    for(uint i = 0; i < confMat.size(); i++)
+        avgError += confMat[i][confMat.size()];
+    avgError /= confMat.size();
+    file << "\n\nAverage Error: \t" << avgError;
+    file << "\nAverage Prediction: \t" << 1.f - avgError;
+
+    file.close();
     return true;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
-
 
 // Compute confusion Matrix
 inline std::vector< std::vector <float> > confMatrix(KFoldValidation &validation, Calltech_Image_Matrix &imageMat)
