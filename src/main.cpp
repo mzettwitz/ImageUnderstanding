@@ -27,19 +27,35 @@ int main(void)
 
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
 
-    KFoldValidation validation(img_Matrix.getNrCategories());
-    validation.create10Fold(img_Matrix.getAllImages());
+	/*
+	KFoldValidation validation(img_Matrix.getNrCategories());
+	validation.create10Fold(img_Matrix.getAllImages());
 
-    //validation.printErrorMatrix();
-    //std::cout << "\n\nPlain RESULTS\n";
+	//validation.printErrorMatrix();
+	//std::cout << "\n\nPlain RESULTS\n";
 
-    auto confMat = confMatrix(validation,img_Matrix);
-    printResults(confMat);
+	auto confMat = confMatrix(validation,img_Matrix);
+	printResults(confMat);
 
-    high_resolution_clock::time_point t2 = high_resolution_clock::now();
-    auto duration = duration_cast<seconds>( t2 - t1 ).count();
-    cerr << "time to compute: " << duration << " seconds";
+	high_resolution_clock::time_point t2 = high_resolution_clock::now();
+	auto duration = duration_cast<seconds>( t2 - t1 ).count();
+	cerr << "time to compute: " << duration << " seconds";
+	*/
+  
 
+
+	std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_training_features(30);
+	std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_test_features(30);
+	
+	for (int i = 0; i < 30; i++)
+	{
+		dlib::extract_fhog_features(img_Matrix.getIthImageOfJthCategory(i, 0), hog_training_features[i]);
+		dlib::extract_fhog_features(img_Matrix.getIthImageOfJthCategory(0, i + 1), hog_test_features[i]);
+		dlib::image_window win(img_Matrix.getIthImageOfJthCategory(i, 0));
+	    dlib::image_window winhog(draw_fhog(hog_training_features[i]));
+		system("Pause");
+     std::cout << std::endl << "Features generated";
+			}
 
     return 0;
 }
