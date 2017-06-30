@@ -34,7 +34,6 @@ This follows in different feature vector lengths in the feature generation.
 To avoid this and to standardizes the vector length we resized each image in the data set to 64x64.
 An additional reason for the resizing is the duration time of the complete algorithm. 
 We tried to get a good trade-off between accuracy and duration time and this is a good solution after analyzing several image classes.
-
 \begin{figure}[ht]
 \centering
 \includegraphics[scale=0.5]{images/preprocessing.png}
@@ -44,11 +43,23 @@ We tried to get a good trade-off between accuracy and duration time and this is 
 
 \section{Features}
 \subsection{Feature Generation}
-HOG features with cellsize 16. what is the solution with other cellsizes?
-LBP
+
+In this section for each resampled images the features will be calculated by different approaches.
+We used the Histogram-of-Gradient~(HOG) features and the other feature generation technique is the detection of Local Binary Patterns~(LBP) features.
+\paragraph{Histogram-of-Gradients}
+
+The first feature generation technique we used is the \textbf{HOG descriptor}.
+This is a detector, which calculates the oriented gradients in the image for predefined cells. 
+This cell size in combination with an x- and y-padding are the parameters for this method.
+Because of the input image size it is necessary to choose a cell size, which is a divider of 64. 
+We tested the cell size the 16 and 8 for feature generation. We do not want a zero border padding, so the padding values are zero. 
+We used the features extracting algorithm of \emph{dlib}, which calculates an 31 dimensional feature vector for each cell.
+Two example images with the different parameters is shown in figure...
+\paragraph{Local Binary Patterns}
+
 
 \subsection{Feature Reduction}
-PCA? Image Resizing
+
 
 \section{Classifier}
 \paragraph{AdaBoost}
