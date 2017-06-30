@@ -27,7 +27,7 @@ int main(void)
 
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
 
-	/*
+
 	KFoldValidation validation(img_Matrix.getNrCategories());
 	validation.create10Fold(img_Matrix.getAllImages());
 
@@ -40,10 +40,10 @@ int main(void)
 	high_resolution_clock::time_point t2 = high_resolution_clock::now();
 	auto duration = duration_cast<seconds>( t2 - t1 ).count();
 	cerr << "time to compute: " << duration << " seconds";
-	*/
+
   
 
-
+/*
 	std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_training_features(30);
 	std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_test_features(30);
 	
@@ -56,6 +56,6 @@ int main(void)
 		system("Pause");
      std::cout << std::endl << "Features generated";
 			}
-
+*/
     return 0;
 }
