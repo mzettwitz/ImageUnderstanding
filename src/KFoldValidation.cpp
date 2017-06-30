@@ -50,7 +50,8 @@ int KFoldValidation::create10Fold(dlib::array < dlib::array < dlib::array2d < dl
 
     m_initalFolds = createInitialFolds(k, smallestClassSize, m_all_image_data);
 
-    std::cout << "progress: 0 % => ";
+    std::cout << "progress: 0 % => ";// << std::flush;
+    std::fflush(stdout);
 
     int class_i = 0;
     while (class_i < m_NrClasses)
@@ -95,10 +96,20 @@ int KFoldValidation::create10Fold(dlib::array < dlib::array < dlib::array2d < dl
         for(int i = 0; i < numOps; i++)
             m_classifier.push_back(threadedClassifiers[i]);
 
-        if(class_i / 10 > 0)
-            std::cout << class_i/10 << "0 % => ";
+        // print progress
+        if(class_i / (m_NrClasses/10) > 0)
+        {
+            if(class_i / (m_NrClasses/10) == 10)
+                std::cout << "100 %" << std::endl;
+            else
+            {
+                std::cout << class_i/10 << "0 % => ";
+                std::fflush(stdout);
+            }
 
+        }
     }
+    //std::cout << endl;
     return 0;
 }
 
