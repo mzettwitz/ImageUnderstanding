@@ -27,7 +27,7 @@ public:
     KFoldValidation();
     KFoldValidation(int nrClasses);
     ~KFoldValidation();
-    int create10Fold(img_array2 &m_all_image_data_of_class);
+    int create10Fold(img_array2 &m_all_image_data_of_class, int cellsize, int imagesize, double nu);
     int findImageNumberOfSmallestClass(img_array2 &m_all_image_data);
     img_array3ptr   createInitialFolds(int Folds,int numberOfImages, img_array2 &all_image_data);
     void printErrorMatrix();
@@ -43,7 +43,7 @@ private:
     std::vector < std::vector < int > > m_error_matrix;
     img_array3ptr	m_initalFolds; // class + fold + image
     std::vector< ClassifierData > m_classifier; // vector of all classifieres
-    void prepareTraining(int class_i, ClassifierData &classi_data, int k, dlib::array<dlib::array<dlib::array2d<dlib::bgr_pixel> > > &m_all_image_data);
-    void trainClass(int class_i, ClassifierData &classi_data, int k, int fold);
+    void prepareTraining(int class_i, ClassifierData &classi_data, int k, dlib::array<dlib::array<dlib::array2d<dlib::bgr_pixel> > > &m_all_image_data, int cellsize, int imagesize, double nu);
+    void trainClass(int class_i, ClassifierData &classi_data, int k, int fold, int cellsize, int imagesize, double nu);
 };
 #endif
