@@ -34,3 +34,11 @@
 
 
 \.gitignore~
+
+*.gz
+
+*.pdf
+
+*.log
+
+*.aux
