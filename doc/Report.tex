@@ -58,11 +58,16 @@ Since we did not use filtering on those features, the padding stayed 1. During t
 
 The length of the final feature vector for each image is therefore (image.columns / cellsize - 2)  * (image.rows / cellsize - 2) * 31.
 We tested the cell size with 8, 16 and 32.
-The original image and two example images with the different parameter setups are shown in the following figures \ref{fig:fish}, \ref{fig:hog8} and \ref{fig:hog16}.
+The original image and two example images with the different parameter setups are shown in figure \ref{fig:hog}.
 It is to note that there is no visivle difference between image size 256 x 256 and a cellsize of 16 and an image size of 128 x 128 and a cellsize of 8.
-\caption{Illustration of the the original image with size 256 x 256.}
 
-\includegraphics[scale=0.5]{images/hog/256_256_16}
+\begin{figure} [htb] 
+	\centering 
+	\subfigure[original image]{\includegraphics[width=3cm, height= 3cm]{images/hog/256_256_original_fish}}  
+	\subfigure[HOG image cell size 8]{\includegraphics[width=3cm, height= 3cm]{images/hog/256_256_8}}  
+	\subfigure[HOG image cell size 16]{\includegraphics[width=3cm, height= 3cm]{images/hog/256_256_16}}  
+	\caption{Illustration of the HOG feature descriptor. Figure a shows the original image with size 256x256 and image b and c display the HOG features.} 
+	\label{fig:hog} 
 \end{figure}
 
 \paragraph{LBP}
