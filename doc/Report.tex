@@ -1,5 +1,6 @@
 \documentclass[a4paper,10pt]{article}
 \usepackage{graphicx}
+\usepackage{subfigure}
 \usepackage[pdfborder={0 0 0}]{hyperref}
 \title{ Student Project 2017 \\ CalTech101 Image Classification}
 \author{David Schulte, Hannes Martinke, Martin Zettwitz}
@@ -62,20 +63,14 @@ The length of the final used feature vector for each image is therefore (image.c
 We tested the cell size with 8, 16 and 32.
 The original image and two example images with the different parameters are shown in the following figure.
 It is to note that there is no visivle difference between image size 256 x 256 and a cellsize of 16 and an image size of 128 x 128 and a cellsize of 8.
-\begin{figure}[htb]
+
+\begin{figure} [htb]
 \centering
-\includegraphics[scale=0.5]{images/hog/256_256_original_fish.png}
-\caption{Illustration of the the original image with size 256 x 256.}
-
-\includegraphics[scale=0.5]{images/hog/256_256_8.png}
-
-\caption{Generated hog image with cell size 8.}
-
-\includegraphics[scale=0.5]{images/hog/256_256_16.png}
-
-\caption{Generated hog image with cell size 16.}
-
-\label{fig:resize}
+\subfigure[original image]{\includegraphics[width=3cm, height= 3cm]{images/hog/256_256_original_fish.png}} 
+\subfigure[HOG image cell size 8]{\includegraphics[width=3cm, height= 3cm]{images/hog/256_256_8.png}} 
+\subfigure[HOG image cell size 16]{\includegraphics[width=3cm, height= 3cm]{images/hog/256_256_16.png}} 
+\caption{Illustration of the HOG feature descriptor. Figure a shows the original image with size 256x256 and image b and c display the HOG features.}
+\label{fig:hog}
 \end{figure}
 
 \paragraph{LBP}
