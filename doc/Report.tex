@@ -94,7 +94,7 @@ To observe the process, we counted the number of predictions and assigned the po
 To prepare a balanced test we detect the smallest number of samples in a class and took the same number of samples of the other classes in the training and testing. 
 Consequently we preserve that the same number of images will be tested and trained.
 \section{Results}
-Our best result was 46.69 \% of correct predicitons, as shown in figure \ref{fig:confMat}.
+Our best result was 46.69 \% of correct predicitons.
 We achieved this result with an image size of 64 x 64 , HOG features with cellsize 8 and a SVM classifier with a nu of 0.004652.
 Similar results were achieved with an image size of 128 x 128 and a cellsize of 16, which was expected, since the resulting feature images were really similar.
 Since the SVM classifier yields better results and was faster (e.g. when SVM achieved 46\% in 6 minutes, AdaBoost achieved 38\% and took 9 minutes) we focused our testing runs on SVM.
@@ -103,18 +103,12 @@ LBP features turned out to be a weak features in the context of the CalTech101 C
 The best prediction rate we achieved with LBP was 31.28\%, suprisingly with image size of 64 x 64 and a cellsize of 64 in only 2 1/2 minutes. So every feature vector for an image was only 59 float entries long. Even runs with a cellsize of 8, which yielded in a feature vector per image of length 3776 only achieved 29\% and took 108 minutes.
 We conclude that LBP got all the necessary information even on small image sizes / big cellsizes. 
 
-\begin{figure}
-\centering
-\includegraphics[width=0.7\linewidth]{images/confMat}
-\caption[confusion matrix]{}
-\label{fig:confMat}
-\end{figure}
-
-
 Our strongest classes where anchor and revolver, with around 80\% of correct predictions. 
 The images in this classes have strong and mostly clear edges, which is exactly the information we wanted to extract with the HOG features. 
 Also the objects in the images had often the same orientation, which would have been a weak point with this feature.
 The weakest class was faces\_easy, which is understandable since there is a class faces, too. Class Garfiled was precited correct only 15\% of the time. Even though the edges are clear on the images, the orienation and his posture changes, which gives very different feature vectors for the same class.
+
+You can see our results in a confusion matrix in the appendix (confMat.xlsx)
 
 \bibliography{citaviFiles}
 \bibliographystyle{plain}
