@@ -29,10 +29,10 @@ This features are used to train the classifier. The validation is performed in t
 
 \section{Preprocessing}
 \label{sec:preprocessing}
-Several images in the \emph{CalTech 101} dataset exist in different image sizes. 
+Several images in the \emph{CalTech 101} dataset exist in different resolutions. 
 This results in different lengths of the feature vectors within the feature generation.
-To avoid this problem and we resized each image in the data set to 64x64, respectively 128x128.
-An additional reason for the resizing is the computation time of the feature generator and the training. 
+To avoid this problem we resized each image in the data set to 64x64, respectively 128x128 and 256x256.
+An additional reason for the resizing is the computation time of the feature generator and the training itself. 
 We tried to get a good trade-off between accuracy and computation time.
 \begin{figure}[ht]
 \centering
@@ -58,9 +58,9 @@ Two example images with the different parameters are shown in figure \emph{...}
 
 \subsection{Feature Reduction}
 
-The calculated features can be reduced by using for example principle component analysis(PCA) or other techniques.
-In our approach an feature reduction is served by re-sampling the images in the preprocessing step (recall \autoref{sec:preprocessing}).
-With the limitation of the pixel matrix and the use of HOG Features the length of the feature vector is equalized for each sample.
+The calculated features can be reduced by using principle component analysis(PCA) or other techniques.
+In our approach a feature reduction is served by re-sampling the images in the preprocessing step (recall \autoref{sec:preprocessing}).
+With the limitation of the pixel matrix and the use of HOG/LBP features, the length of the feature vector is equalized for each sample.
 
 \section{Classifiers}
 
@@ -74,7 +74,7 @@ A Support-Vector-Machine basically tries to define a hyperplane to distinguish b
 
 \section{Training and Validation}
 To train and validate our approach we used a 10-fold cross validation. 
-This method divides the data set in 10 subsets of equal size. 9 folds will be trained and the last one is for testing of the classifier.
+This method divides the data set in 10 subsets of equal size. Each fold contains the same amount of images from each class, were the target class is labeled as positive sample and the other classes as negative samples. 9 folds will be trained and the last one is for testing of the classifier.
 This is an iterative process and will be performed using permutation until each fold was tested.
 To observe the process, we counted the number of predictions and assigned the positive predictions to the predicted class.
 \section{Results}
