@@ -44,12 +44,16 @@ We tried to get a good trade-off between accuracy and computation time.
 \section{Features}
 \subsection{Feature Generation}
 
-We used the Histogram-of-Gradient~(HOG) \emph{INSERT PAPER} feature descriptor as it is a powerful technique to describe images independent of the lighting conditions. 
+We used the Histogram-of-Oriented-Gradients~(HOG) \emph{INSERT PAPER} and Local-Binary-Pattern~(LBP) \emph{INSERT PAPER} feature descriptors as they are powerful techniques to describe images independent of the lighting conditions. They use two different approaches to describe features. In general HOG uses a a shape description using edges were LBP uses the texture.
+
+\paragraph{HOG} 
 The Image is split into overlapping cells. The edges (defined by gradients) are assigned into different bins (uniformly distributed directions).
 Because of the input image size it is necessary to choose a cell size to the power of two. 
 We tested the cell size with 8, 16 and 32 for feature generation with a padding of 1.
 We used the features extracting algorithm of \emph{dlib}, which calculates a 31 dimensional feature vector for each cell.
 Two example images with the different parameters are shown in figure \emph{...}
+
+\paragraph{LBP}
 
 
 \subsection{Feature Reduction}
