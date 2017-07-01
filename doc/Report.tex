@@ -17,16 +17,8 @@ The dataset contains images of 101 different categories. We had to achieve an ac
 Our classification approach is implemented in C++ with the use of \emph{Opencv} and \emph{dlib}.
 \emph{Opencv} and \emph{dlib} are open source libraries for computer vision and machine learning tasks. 
 Our first approaches were an implementation in \emph{Opencv}, because of some missing algorithm for the classification step in the library, we added the \emph{dlib} to combine both libraries.
-The workflow of our procedure is illustrated in \autoref{fig:workflow} and consists of the following four steps: preprocessing, features generation, training, validation.
+The workflow of our procedure consists of the following four steps: preprocessing, features generation, training, validation.
 The steps will be explained in the next sections.
-
-\begin{figure}[htb]
-\centering
-\includegraphics[scale=0.7]{images/Workflow.pdf}
-\caption{Our worklow for the image classification. We organized the input data sets and prepared each image for the subsequent feature generation.
-This features are used to train the classifier. The validation is performed in the next step to evaluate the classification results.}
-\label{fig:workflow}
-\end{figure}
 
 \section{Preprocessing}
 \label{sec:preprocessing}
