@@ -54,7 +54,7 @@ They use two different approaches to describe features. In general HOG uses a a 
 The Image is split into connected regions called cells. The edges (defined by gradients) are assigned into different bins (uniformly distributed directions).
 The used implementation from dlib accepts 3 additonal parameters besides the input image.
 Cellsize and 2 parameters for padding rows/columns. The first parameter sets the height/width of the square cells. 
-Because of choosen input size of the input image we only choose a cell size to the power of two.
+Because of chosen input size of the input image we only choose a cell size to the power of two.
 The padding parameters describe how many zero rows/columns are added at the borders. This is useful if we use linear filter on generated feature image.
 Since we used no filtering on those features, the padding stayed 1. During the process we loose rows/colums at the borders due to the filtering nature of the hog generation.
 For each cell we generate a feature vector of length 31.
@@ -74,7 +74,7 @@ It is to note that there is no visivle difference between image size 256 x 256 a
 \end{figure}
 
 \paragraph{LBP}
-In the dlib implementation the image is overlayed with densely tiled windwos that are cellsize pixels wide and tall. The windwos do not overlap and the cellsize should
+In the dlib implementation the image is overlayed with densely tiled windwos that are cell size pixels wide and tall. The windwos do not overlap and the cellsize should
 be choosen that the windwos cover all of the image. In those windwos the LBP histograms are generated. 
 The resultig feature vector has the length of (image.columns / cellsize)  * (image.rows / cellsize ) * 59.
 
@@ -88,6 +88,7 @@ With the limitation of the pixel matrix and the use of HOG/LBP features, the len
 
 During testing it became clear that an additional feature reduction would have been needed. Not necessarily for better prediction results but for faster computation/training. 
 For example, one run with LBP features and SVM as a classifier with a image size of 64 x 64 and cellsize of 8 took 108 minutes on a modern quadcore cpu.
+
 \section{Classifiers}
 
 After generating the feature vectors for each sample, the samples of each class must be trained, followed by testing to evaluate the accuracy of the whole classification approach. 
@@ -102,7 +103,10 @@ A Support-Vector-Machine basically tries to define a hyperplane to distinguish b
 To train and validate our approach we used a 10-fold cross validation. 
 This method divides the data set in 10 subsets of equal size. Each fold contains the same amount of images from each class, were the target class is labeled as positive sample and the other classes as negative samples. 9 folds will be trained and the last one is for testing of the classifier.
 This is an iterative process and will be performed using permutation until each fold was tested.
+\paragraph{Validated Images}
 To observe the process, we counted the number of predictions and assigned the positive predictions to the predicted class.
+To prepare a balanced test we detect the smallest number of samples in a class and took the same number of samples of the other classes in the training and testing. 
+Consequently we preserve that the same number of images will be tested and trained.
 \section{Results}
 Matrix + Conclusion 
 
