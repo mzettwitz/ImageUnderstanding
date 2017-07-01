@@ -41,3 +41,5 @@
 *.log
 
 *.gz
+
+doc/Report\.pdf
