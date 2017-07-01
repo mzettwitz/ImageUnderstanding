@@ -48,34 +48,25 @@ We tried to get a good trade-off between accuracy and computation time.
 We used the Histogram-of-Oriented-Gradients~(HOG) as described in \emph{Object Detection with Discriminatively Trained Part Based Models by P. Felzenszwalb, R. Girshick, D. McAllester, D. Ramanan in IEEE Transactions on Pattern Analysis and Machine Intelligence, Vol. 32, No. 9, Sep. 2010}
 and Local-Binary-Pattern~(LBP) as described in \emph{Face Description with Local Binary Patterns: Application to Face Recognition by Ahonen, Hadid, and Pietikainen}
 feature descriptors as they are powerful techniques to describe images independent of the lighting conditions.
-They use two different approaches to describe features. In general HOG uses a a shape description using edges were LBP uses the texture.
+These techniques use two different approaches to describe features. In general HOG uses a shape description using edges were LBP uses information based on the texture.
 
 \paragraph{HOG} 
 The Image is split into connected regions called cells. The edges (defined by gradients) are assigned into different bins (uniformly distributed directions).
-The used implementation from dlib accepts 3 additonal parameters besides the input image.
+The implementation from dlib accepts 3 additonal parameters besides the input image.
 Cellsize and 2 parameters for padding rows/columns. The first parameter sets the height/width of the square cells. 
-Because of chosen input size of the input image we only choose a cell size to the power of two.
-The padding parameters describe how many zero rows/columns are added at the borders. This is useful if we use linear filter on generated feature image.
-Since we used no filtering on those features, the padding stayed 1. During the process we loose rows/colums at the borders due to the filtering nature of the hog generation.
-For each cell we generate a feature vector of length 31.
+Since we did not use filtering on those features, the padding stayed 1. During the process we lose rows/colums at the borders due to the filtering nature of the hog generation.
 
-The length of the final used feature vector for each image is therefore (image.columns / cellsize - 2)  * (image.rows / cellsize - 2) * 31.
+The length of the final feature vector for each image is therefore (image.columns / cellsize - 2)  * (image.rows / cellsize - 2) * 31.
 We tested the cell size with 8, 16 and 32.
-The original image and two example images with the different parameters are shown in the following figure.
+The original image and two example images with the different parameter setups are shown in the following figures \ref{fig:fish}, \ref{fig:hog8} and \ref{fig:hog16}.
 It is to note that there is no visivle difference between image size 256 x 256 and a cellsize of 16 and an image size of 128 x 128 and a cellsize of 8.
+\caption{Illustration of the the original image with size 256 x 256.}
 
-\begin{figure} [htb]
-\centering
-\subfigure[original image]{\includegraphics[width=3cm, height= 3cm]{images/hog/256_256_original_fish.png}} 
-\subfigure[HOG image cell size 8]{\includegraphics[width=3cm, height= 3cm]{images/hog/256_256_8.png}} 
-\subfigure[HOG image cell size 16]{\includegraphics[width=3cm, height= 3cm]{images/hog/256_256_16.png}} 
-\caption{Illustration of the HOG feature descriptor. Figure a shows the original image with size 256x256 and image b and c display the HOG features.}
-\label{fig:hog}
+\includegraphics[scale=0.5]{images/hog/256_256_16}
 \end{figure}
 
 \paragraph{LBP}
-In the dlib implementation the image is overlayed with densely tiled windwos that are cell size pixels wide and tall. The windwos do not overlap and the cellsize should
-be choosen that the windwos cover all of the image. In those windwos the LBP histograms are generated. 
+In the dlib implementation the image is overlayed with densely tiled windows that have a width and height of the cellsize. The windows do not overlap and the cellsize should be chosen so that the windows cover the whole image. The LBP histograms are generated in those windows. 
 The resultig feature vector has the length of (image.columns / cellsize)  * (image.rows / cellsize ) * 59.
 
 We used for the cell size 8 and 64 for experimenting.
@@ -86,13 +77,11 @@ The calculated features can be reduced by using principle component analysis(PCA
 In our approach a feature reduction is served by re-sampling the images in the preprocessing step (recall \autoref{sec:preprocessing}).
 With the limitation of the pixel matrix and the use of HOG/LBP features, the length of the feature vector is equalized for each sample.
 
-During testing it became clear that an additional feature reduction would have been needed. Not necessarily for better prediction results but for faster computation/training. 
-For example, one run with LBP features and SVM as a classifier with a image size of 64 x 64 and cellsize of 8 took 108 minutes on a modern quadcore cpu.
-
+For example, a single run with LBP features and SVM as a classifier with an image size of 64 x 64 and cellsize of 8 took 108 minutes on a modern quadcore cpu, even with mutiprocessing.
 \section{Classifiers}
 
 After generating the feature vectors for each sample, the samples of each class must be trained, followed by testing to evaluate the accuracy of the whole classification approach. 
-Therefore we implement two different classifiers. 
+Therefore we implemented two different classifiers. 
 
 \paragraph{AdaBoost}
 Adaptive Boosting \emph{INSERT PAPER Fre95} is machine learning approach, that is based on so called \textit{weak classifiers} that will form a \textit{strong classifier}. Each weak classifier is assigned to randomly generated feature, its prediction is just slightly better than random guessing. The power of the technique is done by combining the best $n$ weak classifiers to a strong classifier as a powerful descriptor. The weak classifiers are trained by supervised learning where each weak classifier predicts the samples. Based on that prediction the error rate is assigned to the individual weak classifier. Additionally each sample is weighted by its significance (error rate of the best weak classifier) to emphasize unseen and hard to predict training data. Based on that significance weight and the error rate of a weak classifier, each weak classifier that is combined to the strong one is weighted, too.
