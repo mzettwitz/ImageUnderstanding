@@ -1,0 +1,25 @@
+HOG Histogram of Oriented Gradients (HOG) wurden in [McC86] vorgestellt, eine
+Anwendung fur Computervision wird in [DT05] beschrieben. Sie beschreiben Objekte
+anhand ihrer Form durch die Verteilung von Gradienten. Sie sind somit sehr diskriminativ
+fur Objektformen. Das Grundkonzept teilt das Bild dabei in sich uberlappende
+Blocke (rechteckig, radial) ein, welche jeweils nochmal in Zellen unterteilt werden.
+Fur die Pixel einer Zelle werden nun einfache Gradienten ([􀀀1; 0; 1],[􀀀1; 0; 1]T ) bestimmt
+und daraus ein orientiertes Histogramm erstellt, wobei jedes Pixel ein Gewicht
+entsprechend der Gradientenstarke erhalt. Das Histogramm besteht aus verschiedenen
+Kanalen, entsprechend einer gleichmaigen Verteilung von Winkeln, in
+welche die Pixel bzw. Gradienten eingetragen werden. Die Zellhistogramme konnen
+nun, um robuster gegenuber Belichtungsunterschieden zu sein, innerhalb eines Block
+normalisiert werden. Die Histogramme aller Blocke werden abschlieend zu einem
+Feature-Vektor konkateniert.
+
+LBP Local Binary Patterns (LBPs) wurden in [OPH94] vorgestellt. Sie basieren
+auf Nachbarschaftsinformationen eines Pixels. Ahnlich wie bei HOG in Abschnitt
+3.3.3 wird das Bild in Zellen unterteilt. Fur jedes Pixel einer Zelle wird nun
+die Information uber die Nachbarschaft gebildet. Hierfur werden kreisformig z.B. 8
+Nachbarn um das zentrale Pixel bestimmt. Nun wird in mathematisch positive oder
+negative Richtung(konsistent) jeder Nachbar verglichen. Ist der Wert des zentralen
+Pixels groer, wird eine 0 eingetragen, anderenfalls eine 1. Somit entsteht ein bin
+arer Vektor, welcher in eine Dezimalzahl uberfuhrt werden kann. Uber alle binaren
+Vektoren bzw. deren Dezimalwert einer Zelle wird ein Histogramm angelegt. Das Histogramm
+kann fur eine bessere Robustheit normalisiert werden. Die Histogramme
+aller Zellen werden anschlieend zu einem Feature-Vektor konkateniert.
