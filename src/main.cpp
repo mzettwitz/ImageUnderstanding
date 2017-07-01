@@ -26,7 +26,7 @@ int main(void)
 
     // SETUP
     int imagesize = 64;
-    int cellsize = 8;
+    int cellsize = 64;
     double nu = 0.00384434;//0.015;
     string type = "SVM";
     string setup = "imagesize ="  + std::to_string(imagesize) + " cellsize = " +

@@ -4,7 +4,7 @@
 #define KFOLDVALIDATION_HPP
 
 //#define USE_BOOST   //define if u want to use BOOST Classifier  change also in ClassifierData.h
-
+#define USE_LBP
 #include "include/ClassifierData.h"
 
 #include <dlib/image_processing.h>

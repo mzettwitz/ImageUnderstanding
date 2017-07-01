@@ -12,12 +12,12 @@
 
 KFoldValidation::KFoldValidation()
 {
-    m_NrClasses = 102;
-    m_error_matrix.resize(m_NrClasses);
-    for (int class_i = 0; class_i < m_NrClasses; class_i++)
-    {
-        m_error_matrix[class_i].resize(m_NrClasses);
-    }
+	m_NrClasses = 102;
+	m_error_matrix.resize(m_NrClasses);
+	for (int class_i = 0; class_i < m_NrClasses; class_i++)
+	{
+		m_error_matrix[class_i].resize(m_NrClasses);
+	}
 }
 
 
@@ -25,8 +25,8 @@ KFoldValidation::KFoldValidation()
 
 KFoldValidation::KFoldValidation(int nrClasses)
 {
-    m_NrClasses = nrClasses;
-    m_error_matrix = std::vector<std::vector<int> > (m_NrClasses,std::vector<int>(m_NrClasses));
+	m_NrClasses = nrClasses;
+	m_error_matrix = std::vector<std::vector<int> >(m_NrClasses, std::vector<int>(m_NrClasses));
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -38,72 +38,72 @@ KFoldValidation::~KFoldValidation()
 // ---------------------------------------------------------------------------------------------------------------------
 
 int KFoldValidation::create10Fold(dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel > > >& m_all_image_data,
-                                   int cellsize, int imagesize, double nu)
+	int cellsize, int imagesize, double nu)
 {
-    //get smallest imagenumber of all classes
-    smallestClassSize = findImageNumberOfSmallestClass(m_all_image_data);
-    int k = 10; // definition of 10 folds
+	//get smallest imagenumber of all classes
+	smallestClassSize = findImageNumberOfSmallestClass(m_all_image_data);
+	int k = 10; // definition of 10 folds
 
-    int numThreads = std::thread::hardware_concurrency();
-    std::vector<ClassifierData> threadedClassifiers(numThreads);
-    int numOps = 0;
-    std::vector<std::thread> threadArr(numThreads);
+	int numThreads = std::thread::hardware_concurrency();
+	std::vector<ClassifierData> threadedClassifiers(numThreads);
+	int numOps = 0;
+	std::vector<std::thread> threadArr(numThreads);
 
-    m_initalFolds = createInitialFolds(k, smallestClassSize, m_all_image_data);
+	m_initalFolds = createInitialFolds(k, smallestClassSize, m_all_image_data);
 
-    std::cout << "progress: 0%" << std::flush;
+	std::cout << "progress: 0%" << std::flush;
 
-    int class_i = 0;
-    while (class_i < m_NrClasses)
-    {
-        // more operations/iterations than threads => use all threads
-        if((m_NrClasses-class_i)/numThreads  > 0)
-        {
-            numOps = numThreads;
-            for(int i = 0; i < numOps; i++)
-            {
-                threadedClassifiers[i] = ClassifierData (m_NrClasses, class_i, 1); // 1 for boost Classifier
-                threadArr[i] = std::thread(&KFoldValidation::prepareTraining,this, class_i++,
-                                           std::ref(threadedClassifiers[i]),k,
-                                           std::ref(m_all_image_data), cellsize, imagesize, nu); //function pointer, object, param
-
-#ifdef __unix__     // load balancing on unix systems
-                cpu_set_t cpuset;
-                CPU_ZERO(&cpuset);
-                CPU_SET(i, &cpuset);
-                pthread_setaffinity_np(threadArr[i].native_handle(), sizeof(cpu_set_t), &cpuset);
-#endif
-            }
-        }
-        // less operations/iterations than threads => use remaining number of threads
-        else
-        {
-            numOps = (m_NrClasses-class_i) % numThreads;
-            for(int i = 0; i < numOps; i++)
-            {
-                threadArr[i] = std::thread(&KFoldValidation::prepareTraining,this, class_i++,
-                                           std::ref(threadedClassifiers[i]),k,
-                                           std::ref(m_all_image_data), cellsize, imagesize, nu); //function pointer, object, param
+	int class_i = 0;
+	while (class_i < m_NrClasses)
+	{
+		// more operations/iterations than threads => use all threads
+		if ((m_NrClasses - class_i) / numThreads  > 0)
+		{
+			numOps = numThreads;
+			for (int i = 0; i < numOps; i++)
+			{
+				threadedClassifiers[i] = ClassifierData(m_NrClasses, class_i, 1); // 1 for boost Classifier
+				threadArr[i] = std::thread(&KFoldValidation::prepareTraining, this, class_i++,
+					std::ref(threadedClassifiers[i]), k,
+					std::ref(m_all_image_data), cellsize, imagesize, nu); //function pointer, object, param
 
 #ifdef __unix__     // load balancing on unix systems
-                cpu_set_t cpuset;
-                CPU_ZERO(&cpuset);
-                CPU_SET(i, &cpuset);
-                pthread_setaffinity_np(threadArr[i].native_handle(), sizeof(cpu_set_t), &cpuset);
+				cpu_set_t cpuset;
+				CPU_ZERO(&cpuset);
+				CPU_SET(i, &cpuset);
+				pthread_setaffinity_np(threadArr[i].native_handle(), sizeof(cpu_set_t), &cpuset);
 #endif
-            }
-        }
+			}
+		}
+		// less operations/iterations than threads => use remaining number of threads
+		else
+		{
+			numOps = (m_NrClasses - class_i) % numThreads;
+			for (int i = 0; i < numOps; i++)
+			{
+				threadArr[i] = std::thread(&KFoldValidation::prepareTraining, this, class_i++,
+					std::ref(threadedClassifiers[i]), k,
+					std::ref(m_all_image_data), cellsize, imagesize, nu); //function pointer, object, param
 
-        // join threads
-        for(int i = 0; i < numOps; i++)
-            threadArr[i].join();
-        for(int i = 0; i < numOps; i++)
-            m_classifier.push_back(threadedClassifiers[i]);
+#ifdef __unix__     // load balancing on unix systems
+				cpu_set_t cpuset;
+				CPU_ZERO(&cpuset);
+				CPU_SET(i, &cpuset);
+				pthread_setaffinity_np(threadArr[i].native_handle(), sizeof(cpu_set_t), &cpuset);
+#endif
+			}
+		}
 
-        // print progress
-        std::cout << " => " << (int)(100.f * ((float)class_i/(float)m_NrClasses)) << "%" << std::flush;
-    }
-    return 0;
+		// join threads
+		for (int i = 0; i < numOps; i++)
+			threadArr[i].join();
+		for (int i = 0; i < numOps; i++)
+			m_classifier.push_back(threadedClassifiers[i]);
+
+		// print progress
+		std::cout << " => " << (int)(100.f * ((float)class_i / (float)m_NrClasses)) << "%" << std::flush;
+	}
+	return 0;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -112,275 +112,313 @@ dlib::array < dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel >* > >
 KFoldValidation::createInitialFolds
 (int Folds, int numberOfImages, dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel > > > &all_image_data)
 {
-    dlib::array < dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel >* > > > initialFolds;
-    initialFolds.resize(m_NrClasses);// for each class produce folds
+	dlib::array < dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel >* > > > initialFolds;
+	initialFolds.resize(m_NrClasses);// for each class produce folds
 
-    // go over each class and gives each object an inital fold
-    for (int class_i = 0; class_i < m_NrClasses; class_i++)
-    {
-        initialFolds[class_i].resize(numberOfImages); // need to resize/reserve memory for the individual vectors too !
-        int foldcounter = 0;
-        // preparation to get random images for the classifier
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<> dis(1,static_cast<int>(all_image_data[class_i].size()));
+									 // go over each class and gives each object an inital fold
+	for (int class_i = 0; class_i < m_NrClasses; class_i++)
+	{
+		initialFolds[class_i].resize(numberOfImages); // need to resize/reserve memory for the individual vectors too !
+		int foldcounter = 0;
+		// preparation to get random images for the classifier
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_int_distribution<> dis(1, static_cast<int>(all_image_data[class_i].size()));
 
-        for (int index = 0; index < numberOfImages; index++)
-        {
-            testClasses.push_back(class_i);	// store class information
+		for (int index = 0; index < numberOfImages; index++)
+		{
+			testClasses.push_back(class_i);	// store class information
 
-            int randomNumber = dis(gen) % all_image_data[class_i].size();  //otherwise out of range possible
-            dlib::array2d < dlib::bgr_pixel>* tempImage = &all_image_data[class_i][randomNumber];
-            initialFolds[class_i][foldcounter % Folds].push_back(tempImage);// save image for each class and the inital fold
-            foldcounter++;
-        }
+			int randomNumber = dis(gen) % all_image_data[class_i].size();  //otherwise out of range possible
+			dlib::array2d < dlib::bgr_pixel>* tempImage = &all_image_data[class_i][randomNumber];
+			initialFolds[class_i][foldcounter % Folds].push_back(tempImage);// save image for each class and the inital fold
+			foldcounter++;
+		}
 
-    }
+	}
 
 
-    return initialFolds;
+	return initialFolds;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 
 int  KFoldValidation::findImageNumberOfSmallestClass(dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel > > > &m_all_image_data)
 {
-    int smallestnumber = INT32_MAX; // initial number of smallest class
-    int tempnumber; // temp number of images per class
+	int smallestnumber = INT32_MAX; // initial number of smallest class
+	int tempnumber; // temp number of images per class
 
-    for (int i = 0 ; i<m_NrClasses;i++)
-    {
-        tempnumber = static_cast<int>(m_all_image_data[i].size());
+	for (int i = 0; i<m_NrClasses; i++)
+	{
+		tempnumber = static_cast<int>(m_all_image_data[i].size());
 
-        if (tempnumber < smallestnumber)
-        {
-            smallestnumber = tempnumber;
-        }
-    }
-    return smallestnumber;
+		if (tempnumber < smallestnumber)
+		{
+			smallestnumber = tempnumber;
+		}
+	}
+	return smallestnumber;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 
 void KFoldValidation::trainClass(int class_i, ClassifierData& classi_data, int k, int fold,
-                                 int cellsize, int imagesize, double nu)
+	int cellsize, int imagesize, double nu)
 {
 #ifdef USE_BOOST 
-    cv::Mat features, labels, testFeatures;
+	cv::Mat features, labels, testFeatures;
 #else
-    std::vector < sample_type > features, testFeatures;
-    std::vector < float > labels;
+	std::vector < sample_type > features, testFeatures;
+	std::vector < float > labels;
 #endif
-    // create Lists for Trainig and Testing
-    std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_training_features(smallestClassSize);
-    std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_test_features(smallestClassSize);
-    int colPadding = 1;
-    int rowPadding = 1;
+	// create Lists for Trainig and Testing
+#ifdef USE_LBP
+	std::vector < std::vector < float > > lbp_training_features(smallestClassSize);
+	std::vector < std::vector < float > > lbp_test_features(smallestClassSize);
+#else
+	std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_training_features(smallestClassSize);
+	std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_test_features(smallestClassSize);
+#endif
+	int colPadding = 1;
+	int rowPadding = 1;
 
-    int dim1 = std::max((int)std::round((float)imagesize/(float)cellsize)-2,0) + colPadding-1;
-    int dim2 = std::max((int)std::round((float)imagesize/(float)cellsize)-2,0) + rowPadding-1;
-    const int featureSize = dim1*dim2*31;
-    //if(class_i == 0 && fold == 0)std::cerr << featureSize; // DO NOT FORGET TO CHANGE IN ClassiferData.h
+	int dim1 = std::max((int)std::round((float)imagesize / (float)cellsize) - 2, 0) + colPadding - 1;
+	int dim2 = std::max((int)std::round((float)imagesize / (float)cellsize) - 2, 0) + rowPadding - 1;
+#ifdef USE_LBP
+	const int featureSize = 1 * 1 * 59;
+#else
+	const int featureSize = dim1*dim2 * 31;
+#endif
+	//if(class_i == 0 && fold == 0)std::cerr << featureSize; // DO NOT FORGET TO CHANGE IN ClassiferData.h
 
-    // build training set for each fold
-    for (int trainfold = 1; trainfold <= k; trainfold++)
-    {
-        if (trainfold == fold)
-        {
-            continue;
-        }
-        mute.lock();
-        for (int c = 0; c < m_NrClasses; c++)
-        {
+	// build training set for each fold
+	for (int trainfold = 1; trainfold <= k; trainfold++)
+	{
+		if (trainfold == fold)
+		{
+			continue;
+		}
+		mute.lock();
+		for (int c = 0; c < m_NrClasses; c++)
+		{
 
-            dlib::array < dlib::array2d < dlib::bgr_pixel>* >* foldimages = &m_initalFolds[c][trainfold];
-            for (unsigned int i = 0; i < foldimages->size(); i++)
-            {
-
-                dlib::extract_fhog_features(*(*foldimages)[i], hog_training_features[i],cellsize, rowPadding, colPadding);
-                signed int label = (class_i == c) ? 1 : -1;
-                labels.push_back(label);
+			dlib::array < dlib::array2d < dlib::bgr_pixel>* >* foldimages = &m_initalFolds[c][trainfold];
+			for (unsigned int i = 0; i < foldimages->size(); i++)
+			{
+#ifdef USE_LBP
+				dlib::extract_uniform_lbp_descriptors(*(*foldimages)[i], lbp_training_features[i], cellsize);
+#else
+				dlib::extract_fhog_features(*(*foldimages)[i], hog_training_features[i], cellsize, rowPadding, colPadding);
+#endif
+				signed int label = (class_i == c) ? 1 : -1;
+				labels.push_back(label);
 
 #ifdef USE_BOOST
-                cv::Mat flat_values;
-                for (int j = 0; j < hog_training_features[0].nc(); j++)
-                {
-                    for (int k = 0; k < hog_training_features[0].nr(); k++)
-                    {
-                        for (int l = 0; l < 31; l++)
-                        {
-                            flat_values.push_back(hog_training_features[i][j][k](l));
-                        }
-                    }
-                }
-                flat_values = flat_values.reshape(1, 1);
-                flat_values.convertTo(flat_values, CV_32F);
-                features.push_back(flat_values);
+				cv::Mat flat_values;
+				for (int j = 0; j < hog_training_features[0].nc(); j++)
+				{
+					for (int k = 0; k < hog_training_features[0].nr(); k++)
+					{
+						for (int l = 0; l < 31; l++)
+						{
+							flat_values.push_back(hog_training_features[i][j][k](l));
+						}
+					}
+				}
+				flat_values = flat_values.reshape(1, 1);
+				flat_values.convertTo(flat_values, CV_32F);
+				features.push_back(flat_values);
 #else
-                std::vector< float > flat_values ;
-                for (int j = 0; j < hog_training_features[0].nc(); j++)
-                {
-                    for (int k = 0; k < hog_training_features[0].nr(); k++)
-                    {
-                        for (int l = 0; l < 31; l++)
-                        {
-                            flat_values.push_back(hog_training_features[i][j][k](l));
-                        }
-                    }
-                }
-                dlib::matrix < float, 0, 1 > temp_mat;
-                temp_mat.set_size(featureSize,1);
-                for (uint j = 0; j < flat_values.size() ; j++)
-                {
-                    temp_mat(j) = (flat_values.at(j));
+#ifndef USE_LBP  //IF NOT
+				std::vector< float > flat_values;
+				for (int j = 0; j < hog_training_features[0].nc(); j++)
+				{
+					for (int k = 0; k < hog_training_features[0].nr(); k++)
+					{
+						for (int l = 0; l < 31; l++)
+						{
+							flat_values.push_back(hog_training_features[i][j][k](l));
+						}
+					}
+				}
 
-                }
+				dlib::matrix < float, 0, 1 > temp_mat;
+				temp_mat.set_size(featureSize, 1);
+				for (uint j = 0; j < flat_values.size(); j++)
+				{
+					temp_mat(j) = (flat_values.at(j));
 
-                features.push_back(temp_mat);
+				}
+
+				features.push_back(temp_mat);
+#else
+				sample_type temp_tr_mat;
+
+				for (int j = 0; j < 1 * 1 * 59; j++)
+				{
+					temp_tr_mat(j) = (lbp_training_features.at(i).at(j));
+				}
+				features.push_back(temp_tr_mat);
 #endif
-            }
+#endif
+			}
 
-        }
-        mute.unlock();
-    }
+		}
+		mute.unlock();
+	}
 
-    // build test set for each fold
-    for (int c = 0; c < m_NrClasses; c++)
-    {
-        mute.lock();
-        dlib::array < dlib::array2d < dlib::bgr_pixel>* >* foldimages = &m_initalFolds[c][fold];
-        for (unsigned int i = 0; i < foldimages->size(); i++)
-        {
-            dlib::extract_fhog_features(*(*foldimages)[i], hog_test_features[i],cellsize, rowPadding, colPadding);
+	// build test set for each fold
+	for (int c = 0; c < m_NrClasses; c++)
+	{
+		mute.lock();
+		dlib::array < dlib::array2d < dlib::bgr_pixel>* >* foldimages = &m_initalFolds[c][fold];
+		for (unsigned int i = 0; i < foldimages->size(); i++)
+		{
+#ifdef USE_LBP
+			dlib::extract_uniform_lbp_descriptors(*(*foldimages)[i], lbp_test_features[i], cellsize);
+#else
+			dlib::extract_fhog_features(*(*foldimages)[i], hog_test_features[i], cellsize, rowPadding, colPadding);
+#endif
+
 #ifdef USE_BOOST
-            cv::Mat flat_values;
-            for (int j = 0; j < hog_test_features[0].nc(); j++)
-            {
-                for (int k = 0; k < hog_test_features[0].nr(); k++)
-                {
-                    for (int l = 0; l < 31; l++)
-                    {
-                        flat_values.push_back(hog_test_features[i][j][k](l));
-                    }
-                }
-            }
-            flat_values = flat_values.reshape(1, 1);
-            flat_values.convertTo(flat_values, CV_32F);
-            testFeatures.push_back(flat_values);
+			cv::Mat flat_values;
+			for (int j = 0; j < hog_test_features[0].nc(); j++)
+			{
+				for (int k = 0; k < hog_test_features[0].nr(); k++)
+				{
+					for (int l = 0; l < 31; l++)
+					{
+						flat_values.push_back(hog_test_features[i][j][k](l));
+					}
+				}
+			}
+			flat_values = flat_values.reshape(1, 1);
+			flat_values.convertTo(flat_values, CV_32F);
+			testFeatures.push_back(flat_values);
 #else
-            std::vector< float > flat_values;
-            for (int j = 0; j < hog_test_features[0].nc(); j++)
-            {
-                for (int k = 0; k < hog_test_features[0].nr(); k++)
-                {
-                    for (int l = 0; l < 31; l++)
-                    {
-                        flat_values.push_back(hog_test_features[i][j][k](l));
-                    }
-                }
-            }
-            dlib::matrix < float, 0, 1 > temp_mat;
-            temp_mat.set_size(featureSize,1);
-            for (int j = 0; j < featureSize; j++)
-            {
-                temp_mat(j) = (flat_values.at(j));
+#ifndef USE_LBP
+			std::vector< float > flat_values;
+			for (int j = 0; j < hog_test_features[0].nc(); j++)
+			{
+				for (int k = 0; k < hog_test_features[0].nr(); k++)
+				{
+					for (int l = 0; l < 31; l++)
+					{
+						flat_values.push_back(hog_test_features[i][j][k](l));
+					}
+				}
+			}
+			dlib::matrix < float, 0, 1 > temp_mat;
+			temp_mat.set_size(featureSize, 1);
+			for (int j = 0; j < featureSize; j++)
+			{
+				temp_mat(j) = (flat_values.at(j));
 
-            }
-            testFeatures.push_back(temp_mat);
+			}
+			testFeatures.push_back(temp_mat);
+#else
+			sample_type temp_test_mat;
+
+			for (int j = 0; j < 1 * 1 * 59; j++)
+			{
+				temp_test_mat(j) = (lbp_test_features.at(i).at(j));
+			}
+			testFeatures.push_back(temp_test_mat);
 #endif
-        }
-        mute.unlock();
-    }
+#endif
+		}
+		mute.unlock();
+	}
 #ifdef USE_BOOST
-    cv::Ptr<cv::ml::Boost> classifier = (cv::Ptr<cv::ml::Boost>) (classi_data.getClassifier(1));
-    cv::Ptr<cv::ml::TrainData> train_data;
-    train_data = train_data->create(features, cv::ml::ROW_SAMPLE, labels);
-    classifier->train(train_data);
+	cv::Ptr<cv::ml::Boost> classifier = (cv::Ptr<cv::ml::Boost>) (classi_data.getClassifier(1));
+	cv::Ptr<cv::ml::TrainData> train_data;
+	train_data = train_data->create(features, cv::ml::ROW_SAMPLE, labels);
+	classifier->train(train_data);
 
-    cv::Mat results;
-    classifier->predict(testFeatures, results);
+	cv::Mat results;
+	classifier->predict(testFeatures, results);
 
-    // validate
-    for (int i = 0; i < results.size().height; i++)
-    {
-        float prediction = results.at<float>(i);
-        if (prediction == 1.f && i / ((int)results.size().height / m_NrClasses) == class_i)
-        {
-            classi_data.addError(class_i);
-            m_error_matrix[i / ((int)results.size().height / m_NrClasses)][class_i]++;
-        }
-        else if (prediction == 1.f && i / ((int)results.size().height / m_NrClasses) != class_i)
-        {
-            classi_data.addError(class_i);
-            m_error_matrix[i / ((int)results.size().height / m_NrClasses)][class_i]++;
-        }
+	// validate
+	for (int i = 0; i < results.size().height; i++)
+	{
+		float prediction = results.at<float>(i);
+		if (prediction == 1.f && i / ((int)results.size().height / m_NrClasses) == class_i)
+		{
+			classi_data.addError(class_i);
+			m_error_matrix[i / ((int)results.size().height / m_NrClasses)][class_i]++;
+		}
+		else if (prediction == 1.f && i / ((int)results.size().height / m_NrClasses) != class_i)
+		{
+			classi_data.addError(class_i);
+			m_error_matrix[i / ((int)results.size().height / m_NrClasses)][class_i]++;
+		}
 
 #else
-    const double max_nu = dlib::maximum_nu(labels);
-    dlib::svm_nu_trainer<kernel_type> classifier = classi_data.getClassifier(1);
-    classifier.set_nu(nu);
-    classifier.set_kernel(kernel_type(nu));
-    //std::cout << "nu was set to : " << classifier.get_nu() << std::endl;
-    //std::cout << "Max nu: " << max_nu << std::endl;
-    funct_type learned_function;
-    try
-    {
-        learned_function = classifier.train(features, labels);
-    }
-    catch (dlib::error e )
-    {
-        std::cout << std::endl << e.what() << std::endl;
-    }
-    std::vector < float > results;
-    for (uint i = 0; i < testFeatures.size(); i++)
-    {
-        float prediction = learned_function(testFeatures.at(i));
-        if (prediction > 0)
-        {
-            results.push_back(1.f);
-        }
-        else
-        {
-            results.push_back(-1.f);
-        }
-    }
-    for (uint i = 0; i < results.size(); i++)
-    {
-        float prediction = results.at(i);
+	const double max_nu = dlib::maximum_nu(labels);
+	dlib::svm_nu_trainer<kernel_type> classifier = classi_data.getClassifier(1);
+	classifier.set_nu(nu);
+	classifier.set_kernel(kernel_type(nu));
+	//std::cout << "nu was set to : " << classifier.get_nu() << std::endl;
+	//std::cout << "Max nu: " << max_nu << std::endl;
+	funct_type learned_function;
+	try
+	{
+		learned_function = classifier.train(features, labels);
+	}
+	catch (dlib::error e)
+	{
+		std::cout << std::endl << e.what() << std::endl;
+	}
+	std::vector < float > results;
+	for (uint i = 0; i < testFeatures.size(); i++)
+	{
+		float prediction = learned_function(testFeatures.at(i));
+		if (prediction > 0)
+		{
+			results.push_back(1.f);
+		}
+		else
+		{
+			results.push_back(-1.f);
+		}
+	}
+	for (uint i = 0; i < results.size(); i++)
+	{
+		float prediction = results.at(i);
 
-        if (prediction == 1.f && i/((int)results.size()/m_NrClasses) == class_i)
-        {
-            classi_data.addError(class_i);
-            m_error_matrix[i/((int)results.size()/m_NrClasses)][class_i]++;
-        }
-        else if (prediction == 1.f && i/((int)results.size()/m_NrClasses) != class_i)
-        {
-            classi_data.addError(class_i);
-            m_error_matrix[i/((int)results.size()/m_NrClasses)][class_i]++;
-        }
+		if (prediction == 1.f && i / ((int)results.size() / m_NrClasses) == class_i)
+		{
+			classi_data.addError(class_i);
+			m_error_matrix[i / ((int)results.size() / m_NrClasses)][class_i]++;
+		}
+		else if (prediction == 1.f && i / ((int)results.size() / m_NrClasses) != class_i)
+		{
+			classi_data.addError(class_i);
+			m_error_matrix[i / ((int)results.size() / m_NrClasses)][class_i]++;
+		}
 #endif
-    }
-}
+	}
+	}
 
 // ---------------------------------------------------------------------------------------------------------------------
 
 void KFoldValidation::prepareTraining(int class_i, ClassifierData &classi_data, int k,
-                                      dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel > > > &m_all_image_data,
-                                       int cellsize, int imagesize, double nu)
-{    
-    // create initial fold datastructure;
-    for(int fold = 1; fold <= k; fold++)
-        trainClass(class_i, classi_data, k, fold, cellsize, imagesize, nu);
+	dlib::array < dlib::array < dlib::array2d < dlib::bgr_pixel > > > &m_all_image_data,
+	int cellsize, int imagesize, double nu)
+{
+	// create initial fold datastructure;
+	for (int fold = 1; fold <= k; fold++)
+		trainClass(class_i, classi_data, k, fold, cellsize, imagesize, nu);
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 
 void KFoldValidation::printErrorMatrix()
 {
-    for(uint i = 0 ; i < m_error_matrix.size(); i++)
-    {
-        std:: cout << std::endl;
-        for(uint j = 0; j < m_error_matrix[i].size(); j++)
-            std:: cout << m_error_matrix[i][j] << " ";
-    }
+	for (uint i = 0; i < m_error_matrix.size(); i++)
+	{
+		std::cout << std::endl;
+		for (uint j = 0; j < m_error_matrix[i].size(); j++)
+			std::cout << m_error_matrix[i][j] << " ";
+	}
 }
