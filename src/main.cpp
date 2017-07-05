@@ -64,7 +64,7 @@ int main(void)
     //==============================================================================================================
 
 
-    std::vector<std::vector<float> > matrix(img_Matrix.getNrCategories(), std::vector<float>(img_Matrix.getNrCategories()+1));
+    std::vector<std::vector<float> > matrix(img_Matrix.getNrCategories(), std::vector<float>(img_Matrix.getNrCategories()));
 
     // Perform classification
 
@@ -73,7 +73,6 @@ int main(void)
     std::vector < sample_type > testFeatures;
 
     int countImages = 0;
-    dlib::array < dlib::array2d < dlib::bgr_pixel>* >* images;
     for(uint i = 0;i < img_Matrix.getNrCategories(); i++)
     {
         for(uint j = 0; j < img_Matrix.getAllImagesOfIthClass(i).size(); j++)
@@ -89,9 +88,9 @@ int main(void)
 
     int count = 0;
     std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_test_features(countImages);
-    for(int j = 0; j < img_Matrix.getNrCategories(); j++)
+    for(uint j = 0; j < img_Matrix.getNrCategories(); j++)
     {
-        for (unsigned int i = 0; i < images->size(); i++)
+        for (int i = 0; i < countImages; i++)
         {
             dlib::extract_fhog_features(img_Matrix.getIthImageOfJthCategory(i,j), hog_test_features[count], cellsize, rowPadding, colPadding); // *(*images)[i]
 #ifdef USE_BOOST
@@ -140,7 +139,7 @@ int main(void)
     int counter = 0;
     for(uint cat_i = 0; cat_i < img_Matrix.getNrCategories(); cat_i++)   // classes
     {
-        for(uint img_j; img_j < img_Matrix.getAllImagesOfIthClass(cat_i).size(); img_j++)    // images
+        for(uint img_j = 0; img_j < img_Matrix.getAllImagesOfIthClass(cat_i).size(); img_j++)    // images
         {
             for(uint classifier_k = 0; classifier_k < validation.getClassifierData().size(); classifier_k++)
             {
