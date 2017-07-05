@@ -50,14 +50,14 @@ int main(void)
     //validation.printErrorMatrix();
     //std::cout << "\n\nPlain RESULTS\n";
 
-    auto confMat = confMatrix(validation,img_Matrix);
-    printResults(confMat);
+    //auto confMat = confMatrix(validation,img_Matrix);
+    //printResults(confMat);
 
     high_resolution_clock::time_point t2 = high_resolution_clock::now();
     auto duration = duration_cast<seconds>( t2 - t1 ).count();
     cerr << "time to compute: " << duration << " seconds" << std::endl;
 
-    storeMatrixOnDisk(confMat, duration, setup);
+    //storeMatrixOnDisk(confMat, duration, setup);
 
     //nu *= 1.1;
     //==============================================================================================================
@@ -154,6 +154,10 @@ int main(void)
             counter++;
         }
     }
+
+    auto confMat = confMatrix(matrix,img_Matrix);
+    printResults(confMat);
+    storeMatrixOnDisk(confMat, duration, setup);
 
     return 0;
 }
