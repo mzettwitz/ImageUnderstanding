@@ -148,7 +148,8 @@ int main(void)
                 funct_type learnedF = validation.getClassifierData()[classifier_k].getLearnedFunction();
                 prediction = learnedF(testFeatures.at(counter));
 
-
+                if(prediction == 1.f)
+                    matrix[cat_i][classifier_k]++;
             }
             counter++;
         }
