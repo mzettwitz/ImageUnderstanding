@@ -104,7 +104,44 @@ inline bool storeMatrixOnDisk(std::vector< std::vector <float> > confMat, int ti
     file.close();
     return true;
 }
+// ---------------------------------------------------------------------------------------------------------------------
 
+// overload Function for confusion Matrix with std vector float 
+
+inline std::vector< std::vector <float>> confMatrix(std::vector <std::vector<float>> validation,Calltech_Image_Matrix &imageMat, int smallestClass)
+{
+	int nrCats = imageMat.getNrCategories();
+	// reserve capacity for all N classes and all N errors + average error per class: NxN+1 matrix
+	std::vector< std::vector <float> > confMat(nrCats, std::vector<float>(nrCats + 1));
+
+	// iterate over all classes
+	for (int i = 0; i < nrCats; i++)
+	{
+		float totalPredictions_i = 0.f;
+		for (int j = 0; j < nrCats; j++)
+		{
+			if (j == i)
+				totalPredictions_i += smallestClass;
+			else
+				totalPredictions_i += validation.at(i).at(j);
+		}
+
+
+		// iterate over all classes and normalize predicted results
+		for (int j = 0; j < nrCats; j++)
+		{
+			if (totalPredictions_i != 0)
+				confMat[i][j] = (validation.at(i).at(j)) / totalPredictions_i;
+		}
+
+		// average error for class i
+		confMat[i][nrCats] = 1.f - confMat[i][i];//classError(i, validation.getErrorMatrix().at(i));
+	}
+
+
+
+	return confMat;
+}
 // ---------------------------------------------------------------------------------------------------------------------
 
 // Compute confusion Matrix
