@@ -79,7 +79,7 @@ int main(void)
         for(uint j = 0; j < img_Matrix.getAllImagesOfIthClass(i).size(); j++)
         {
             countImages++;
-            images->push_back(&(img_Matrix.getIthImageOfJthCategory(i,j)));
+            //images->push_back(img_Matrix.getIthImageOfJthCategory(i,j)));
         }
     }
 
@@ -87,46 +87,51 @@ int main(void)
     int dim2 = std::max((int)std::round((float)imagesize/(float)cellsize)-2,0) + rowPadding-1;
     const int featureSize = dim1*dim2*31;
 
+    int count = 0;
     std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_test_features(countImages);
-    for (unsigned int i = 0; i < images->size(); i++)
+    for(int j = 0; j < img_Matrix.getNrCategories(); j++)
     {
-        dlib::extract_fhog_features(*(*images)[i], hog_test_features[i], cellsize, rowPadding, colPadding);
+        for (unsigned int i = 0; i < images->size(); i++)
+        {
+            dlib::extract_fhog_features(img_Matrix.getIthImageOfJthCategory(i,j), hog_test_features[count], cellsize, rowPadding, colPadding); // *(*images)[i]
 #ifdef USE_BOOST
-        cv::Mat flat_values;
-        for (int j = 0; j < hog_test_features[0].nc(); j++)
-        {
-            for (int k = 0; k < hog_test_features[0].nr(); k++)
+            cv::Mat flat_values;
+            for (int j = 0; j < hog_test_features[0].nc(); j++)
             {
-                for (int l = 0; l < 31; l++)
+                for (int k = 0; k < hog_test_features[0].nr(); k++)
                 {
-                    flat_values.push_back(hog_test_features[i][j][k](l));
+                    for (int l = 0; l < 31; l++)
+                    {
+                        flat_values.push_back(hog_test_features[i][j][k](l));
+                    }
                 }
             }
-        }
-        flat_values = flat_values.reshape(1, 1);
-        flat_values.convertTo(flat_values, CV_32F);
-        testFeatures.push_back(flat_values);
+            flat_values = flat_values.reshape(1, 1);
+            flat_values.convertTo(flat_values, CV_32F);
+            testFeatures.push_back(flat_values);
 #else
-        std::vector< float > flat_values;
-        for (int j = 0; j < hog_test_features[0].nc(); j++)
-        {
-            for (int k = 0; k < hog_test_features[0].nr(); k++)
+            std::vector< float > flat_values;
+            for (int j = 0; j < hog_test_features[0].nc(); j++)
             {
-                for (int l = 0; l < 31; l++)
+                for (int k = 0; k < hog_test_features[0].nr(); k++)
                 {
-                    flat_values.push_back(hog_test_features[i][j][k](l));
+                    for (int l = 0; l < 31; l++)
+                    {
+                        flat_values.push_back(hog_test_features[i][j][k](l));
+                    }
                 }
             }
-        }
-        dlib::matrix < float, 0, 1 > temp_mat;
-        temp_mat.set_size(featureSize,1);
-        for (int j = 0; j < featureSize; j++)
-        {
-            temp_mat(j) = (flat_values.at(j));
+            dlib::matrix < float, 0, 1 > temp_mat;
+            temp_mat.set_size(featureSize,1);
+            for (int j = 0; j < featureSize; j++)
+            {
+                temp_mat(j) = (flat_values.at(j));
 
-        }
-        testFeatures.push_back(temp_mat);
+            }
+            testFeatures.push_back(temp_mat);
 #endif
+            count++;
+        }
     }
 
     //------------------------------------------------------------------------------------------------------------------
