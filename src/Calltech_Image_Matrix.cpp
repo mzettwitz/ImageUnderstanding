@@ -15,7 +15,7 @@ Calltech_Image_Matrix::~Calltech_Image_Matrix()
 // ---------------------------------------------------------------------------------------------------------------------
 
 // load all images in a folder recursively
-int Calltech_Image_Matrix::loadImagesFromPath(cv::String path, int width, int height, int cellsize, int rowPadding, int colPadding)
+int Calltech_Image_Matrix::loadImagesFromPath(cv::String path, int width, int height, int cellsize, int rowPadding, int colPadding, const int featureSize)
 {
     // get all image paths
     std::vector < cv::String  > all_img_paths;
@@ -47,6 +47,7 @@ int Calltech_Image_Matrix::loadImagesFromPath(cv::String path, int width, int he
 
             m_all_image_data.resize(categories_nr + 1);
 			m_all_feature_data.resize(categories_nr + 1);
+			m_all_flat_features.resize(categories_nr + 1);
 			img_nr_in_cl = 0;
         }
 
@@ -67,7 +68,30 @@ int Calltech_Image_Matrix::loadImagesFromPath(cv::String path, int width, int he
 
 		//create hog feature
 		m_all_feature_data[categories_nr].resize(img_nr_in_cl);
-		dlib::extract_fhog_features(img_resized, m_all_feature_data[categories_nr][img_nr_in_cl - 1], cellsize, rowPadding, colPadding);
+
+		dlib::array2d < dlib::matrix<float, 31, 1> > features;
+		dlib::extract_fhog_features(img_resized, features, cellsize, rowPadding, colPadding);
+		
+		std::vector< float > flat_values;
+		for (int j = 0; j < features.nc(); j++)
+		{
+			for (int k = 0; k < features.nr(); k++)
+			{
+				for (int l = 0; l < 31; l++)
+				{
+					flat_values.push_back(features[j][k](l));
+				}
+			}
+		}
+		dlib::matrix < float, 0, 1 > temp_mat;
+		temp_mat.set_size(featureSize, 1);
+		for (uint j = 0; j < flat_values.size(); j++)
+		{
+			temp_mat(j) = (flat_values.at(j));
+
+		}
+		m_all_flat_features[categories_nr].resize(img_nr_in_cl);
+		m_all_flat_features[categories_nr][img_nr_in_cl - 1] = temp_mat;
 
         // save the image in the right categorie
         m_all_image_data[categories_nr].push_back(img_resized);

@@ -29,14 +29,18 @@ int main(void)
     int cellsize = 8;
     int rowPadding, colPadding;
     rowPadding = colPadding = 1;
+	int dim1 = std::max((int)std::round((float)imagesize / (float)cellsize) - 2, 0) + colPadding - 1;
+	int dim2 = std::max((int)std::round((float)imagesize / (float)cellsize) - 2, 0) + rowPadding - 1;
+	const int featureSize = dim1*dim2 * 31;
+
     double nu = 0.0043;//0.015;
     string type = "SVM";
     string setup = "imagesize ="  + std::to_string(imagesize) + " cellsize = " +
             std::to_string(cellsize) + " type = " + type + " nu = " + std::to_string(nu);
 
-    if (img_Matrix.loadImagesFromPath(path,imagesize,imagesize,cellsize,rowPadding, colPadding) != 0) return 0;
-	dlib::image_window test(dlib::draw_fhog(img_Matrix.getFeatureOfIthImageOfJthCategory(0, 0)));
-	system("Pause");
+    if (img_Matrix.loadImagesFromPath(path,imagesize,imagesize,cellsize,rowPadding, colPadding, featureSize) != 0) return 0;
+//	dlib::image_window test(img_Matrix.getIthImageOfJthCategory(0,0));
+
     //while(nu < 0.019)
 
     //string setup = "imagesize ="  + std::to_string(imagesize) + " cellsize = " +
@@ -83,9 +87,7 @@ int main(void)
         }
     }
 
-    int dim1 = std::max((int)std::round((float)imagesize/(float)cellsize)-2,0) + colPadding-1;
-    int dim2 = std::max((int)std::round((float)imagesize/(float)cellsize)-2,0) + rowPadding-1;
-    const int featureSize = dim1*dim2*31;
+
 
     int count = 0;
     std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_test_features(countImages);
@@ -93,7 +95,8 @@ int main(void)
     {
         for (int i = 0; i < countImages; i++)
         {
-            dlib::extract_fhog_features(img_Matrix.getIthImageOfJthCategory(i,j), hog_test_features[count], cellsize, rowPadding, colPadding); // *(*images)[i]
+			img_Matrix.getFeatureOfIthImageOfJthCategory(i, j).swap(hog_test_features[count]);
+    //        dlib::extract_fhog_features(img_Matrix.getIthImageOfJthCategory(i,j), hog_test_features[count], cellsize, rowPadding, colPadding); // *(*images)[i]
 #ifdef USE_BOOST
             cv::Mat flat_values;
             for (int j = 0; j < hog_test_features[0].nc(); j++)
