@@ -27,55 +27,118 @@ int main(void)
     // SETUP
     int imagesize = 64;
     int cellsize = 8;
-    double nu = 0.00384434;//0.015;
+    int rowPadding, colPadding;
+    rowPadding = colPadding = 1;
+    double nu = 0.0043;//0.015;
     string type = "SVM";
     string setup = "imagesize ="  + std::to_string(imagesize) + " cellsize = " +
             std::to_string(cellsize) + " type = " + type + " nu = " + std::to_string(nu);
 
     if (img_Matrix.loadImagesFromPath(path,imagesize,imagesize) != 0) return 0;
 
-    while(nu < 0.019)
+    //while(nu < 0.019)
+
+    //string setup = "imagesize ="  + std::to_string(imagesize) + " cellsize = " +
+    //        std::to_string(cellsize) + " type = " + type + " nu = " + std::to_string(nu);
+    //std::cerr << nu << std::endl;
+    high_resolution_clock::time_point t1 = high_resolution_clock::now();
+
+    KFoldValidation validation(img_Matrix.getNrCategories());
+    validation.create10Fold(img_Matrix.getAllImages(), cellsize, imagesize, nu);
+
+    //validation.printErrorMatrix();
+    //std::cout << "\n\nPlain RESULTS\n";
+
+    auto confMat = confMatrix(validation,img_Matrix);
+    printResults(confMat);
+
+    high_resolution_clock::time_point t2 = high_resolution_clock::now();
+    auto duration = duration_cast<seconds>( t2 - t1 ).count();
+    cerr << "time to compute: " << duration << " seconds" << std::endl;
+
+    storeMatrixOnDisk(confMat, duration, setup);
+
+    //nu *= 1.1;
+    //==============================================================================================================
+    //==============================================================================================================
+    //==============================================================================================================
+
+
+    std::vector<std::vector<float> > matrix(img_Matrix.getNrCategories(), std::vector<float>(img_Matrix.getNrCategories()+1));
+
+    // Perform classification
+
+    //------------------------------------------------------------------------------------------------------------------
+    // build test set for each fold
+    int countImages = 0;
+    dlib::array < dlib::array2d < dlib::bgr_pixel>* >* images;
+    for(int i = 0;i < img_Matrix.getNrCategories(); i++)
     {
-        string setup = "imagesize ="  + std::to_string(imagesize) + " cellsize = " +
-                std::to_string(cellsize) + " type = " + type + " nu = " + std::to_string(nu);
-        std::cerr << nu << std::endl;
-        high_resolution_clock::time_point t1 = high_resolution_clock::now();
-
-        KFoldValidation validation(img_Matrix.getNrCategories());
-        validation.create10Fold(img_Matrix.getAllImages(), cellsize, imagesize, nu);
-
-        //validation.printErrorMatrix();
-        //std::cout << "\n\nPlain RESULTS\n";
-
-        auto confMat = confMatrix(validation,img_Matrix);
-        printResults(confMat);
-
-        high_resolution_clock::time_point t2 = high_resolution_clock::now();
-        auto duration = duration_cast<seconds>( t2 - t1 ).count();
-        cerr << "time to compute: " << duration << " seconds" << std::endl;
-
-        storeMatrixOnDisk(confMat, duration, setup);
-
-        nu *= 1.1;
+        for(int j = 0; j < img_Matrix.getAllImagesOfIthClass(i).size(); j++)
+        {
+            countImages++;
+            images->push_back(img_Matrix.getIthImageOfJthCategory(i,j));
+        }
     }
 
-
-
-
-
-    /*
-    std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_training_features(30);
-    std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_test_features(30);
-
-    for (int i = 0; i < 30; i++)
+    std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_test_features(countImages);
+    for (unsigned int i = 0; i < images->size(); i++)
     {
-        dlib::extract_fhog_features(img_Matrix.getIthImageOfJthCategory(i, 0), hog_training_features[i]);
-        dlib::extract_fhog_features(img_Matrix.getIthImageOfJthCategory(0, i + 1), hog_test_features[i]);
-        dlib::image_window win(img_Matrix.getIthImageOfJthCategory(i, 0));
-        dlib::image_window winhog(draw_fhog(hog_training_features[i]));
-        system("Pause");
-     std::cout << std::endl << "Features generated";
+        dlib::extract_fhog_features(*(*images)[i], hog_test_features[i], cellsize, rowPadding, colPadding);
+#ifdef USE_BOOST
+        cv::Mat flat_values;
+        for (int j = 0; j < hog_test_features[0].nc(); j++)
+        {
+            for (int k = 0; k < hog_test_features[0].nr(); k++)
+            {
+                for (int l = 0; l < 31; l++)
+                {
+                    flat_values.push_back(hog_test_features[i][j][k](l));
+                }
             }
-*/
+        }
+        flat_values = flat_values.reshape(1, 1);
+        flat_values.convertTo(flat_values, CV_32F);
+        testFeatures.push_back(flat_values);
+#else
+        std::vector< float > flat_values;
+        for (int j = 0; j < hog_test_features[0].nc(); j++)
+        {
+            for (int k = 0; k < hog_test_features[0].nr(); k++)
+            {
+                for (int l = 0; l < 31; l++)
+                {
+                    flat_values.push_back(hog_test_features[i][j][k](l));
+                }
+            }
+        }
+        dlib::matrix < float, 0, 1 > temp_mat;
+        temp_mat.set_size(featureSize,1);
+        for (int j = 0; j < featureSize; j++)
+        {
+            temp_mat(j) = (flat_values.at(j));
+
+        }
+        testFeatures.push_back(temp_mat);
+#endif
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+
+
+    for(int cat_i = 0; cat_i < img_Matrix.getNrCategories(); cat_i++)   // classes
+    {
+        for(int img_j; img_j < img_Matrix.getAllImagesOfIthClass(cat_i).size(); img_j++)    // images
+        {
+            for(int classifier_k = 0; classifier_k < validation.getClassifierData().size(); classifier_k++)
+            {
+                // naiv version: sum up predictions, normalize with predictions per class
+                funct_type learnedF = validation.getClassifierData()[classifier_k].getLearnedFunction();
+                learnedF()
+
+            }
+        }
+    }
+
     return 0;
 }

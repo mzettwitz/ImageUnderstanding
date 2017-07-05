@@ -27,6 +27,7 @@ KFoldValidation::KFoldValidation(int nrClasses)
 {
     m_NrClasses = nrClasses;
     m_error_matrix = std::vector<std::vector<int> > (m_NrClasses,std::vector<int>(m_NrClasses));
+    //m_classifier = std::vector<ClassifierData>(nrClasses);
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -52,6 +53,7 @@ int KFoldValidation::create10Fold(dlib::array < dlib::array < dlib::array2d < dl
     m_initalFolds = createInitialFolds(k, smallestClassSize, m_all_image_data);
 
     std::cout << "progress: 0%" << std::flush;
+    int counter = 0;
 
     int class_i = 0;
     while (class_i < m_NrClasses)
@@ -73,6 +75,8 @@ int KFoldValidation::create10Fold(dlib::array < dlib::array < dlib::array2d < dl
                 CPU_SET(i, &cpuset);
                 pthread_setaffinity_np(threadArr[i].native_handle(), sizeof(cpu_set_t), &cpuset);
 #endif
+
+                counter ++;
             }
         }
         // less operations/iterations than threads => use remaining number of threads
@@ -81,6 +85,7 @@ int KFoldValidation::create10Fold(dlib::array < dlib::array < dlib::array2d < dl
             numOps = (m_NrClasses-class_i) % numThreads;
             for(int i = 0; i < numOps; i++)
             {
+                threadedClassifiers[i] = ClassifierData (m_NrClasses, class_i, 1); // 1 for boost Classifier
                 threadArr[i] = std::thread(&KFoldValidation::prepareTraining,this, class_i++,
                                            std::ref(threadedClassifiers[i]),k,
                                            std::ref(m_all_image_data), cellsize, imagesize, nu); //function pointer, object, param
@@ -322,7 +327,7 @@ void KFoldValidation::trainClass(int class_i, ClassifierData& classi_data, int k
     classifier.set_kernel(kernel_type(nu));
     //std::cout << "nu was set to : " << classifier.get_nu() << std::endl;
     //std::cout << "Max nu: " << max_nu << std::endl;
-    funct_type learned_function;
+    funct_type learned_function = classi_data.getLearnedFunction();
     try
     {
         learned_function = classifier.train(features, labels);

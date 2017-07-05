@@ -33,6 +33,7 @@ private:
     cv::Ptr<cv::ml::Boost>          m_BoostClassifier;
 #else
     dlib::svm_nu_trainer<kernel_type> m_svmClassifier;
+    funct_type m_learnedFunction;
 #endif
 
 
@@ -49,7 +50,8 @@ public:
 #ifdef USE_BOOST
     cv::Ptr<cv::ml::Boost>  getClassifier(unsigned int type);
 #else
-    dlib::svm_nu_trainer<kernel_type> getClassifier(unsigned int type);
+    dlib::svm_nu_trainer<kernel_type>& getClassifier(unsigned int type);
+    funct_type& getLearnedFunction();
 #endif
     unsigned int getNr();
     std::vector<int>& getErrors();

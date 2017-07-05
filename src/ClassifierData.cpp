@@ -51,9 +51,12 @@ cv::Ptr<cv::ml::Boost>  ClassifierData::getClassifier(unsigned int type)
 {
     return m_BoostClassifier;
 #else
-dlib::svm_nu_trainer<kernel_type> ClassifierData::getClassifier(unsigned int type)
+dlib::svm_nu_trainer<kernel_type> &ClassifierData::getClassifier(unsigned int type)
 {
     return m_svmClassifier;
+}
+funct_type& ClassifierData::getLearnedFunction(){
+    return m_learnedFunction;
 #endif
 
 }
