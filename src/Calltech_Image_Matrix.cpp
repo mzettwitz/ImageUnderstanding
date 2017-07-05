@@ -65,11 +65,13 @@ int Calltech_Image_Matrix::loadImagesFromPath(cv::String path, int width, int he
 
         dlib::resize_image(img, img_resized);
 
-        // save the image in the right categorie
-        m_all_image_data[categories_nr].push_back(img_resized);
 		//create hog feature
 		m_all_feature_data[categories_nr].resize(img_nr_in_cl);
 		dlib::extract_fhog_features(img_resized, m_all_feature_data[categories_nr][img_nr_in_cl - 1], cellsize, rowPadding, colPadding);
+
+        // save the image in the right categorie
+        m_all_image_data[categories_nr].push_back(img_resized);
+
 		
     }
 
