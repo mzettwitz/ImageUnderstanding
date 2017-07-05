@@ -108,7 +108,7 @@ inline bool storeMatrixOnDisk(std::vector< std::vector <float> > confMat, int ti
 
 // overload Function for confusion Matrix with std vector float 
 
-inline std::vector< std::vector <float>> confMatrix(std::vector <std::vector<float>> validation,Calltech_Image_Matrix &imageMat, int smallestClass)
+inline std::vector< std::vector <float>> confMatrix(std::vector <std::vector<float>> validation,Calltech_Image_Matrix &imageMat)//, int smallestClass)
 {
 	int nrCats = imageMat.getNrCategories();
 	// reserve capacity for all N classes and all N errors + average error per class: NxN+1 matrix
@@ -120,9 +120,9 @@ inline std::vector< std::vector <float>> confMatrix(std::vector <std::vector<flo
 		float totalPredictions_i = 0.f;
 		for (int j = 0; j < nrCats; j++)
 		{
-			if (j == i)
-				totalPredictions_i += smallestClass;
-			else
+            //if (j == i)
+                //totalPredictions_i += smallestClass;
+            //else
 				totalPredictions_i += validation.at(i).at(j);
 		}
 
