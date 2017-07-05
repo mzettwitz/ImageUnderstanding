@@ -38,9 +38,9 @@ int main(void)
     string setup = "imagesize ="  + std::to_string(imagesize) + " cellsize = " +
             std::to_string(cellsize) + " type = " + type + " nu = " + std::to_string(nu);
 
-    if (img_Matrix.loadImagesFromPath(path,imagesize,imagesize,cellsize,rowPadding, colPadding, featureSize) != 0) return 0;
-//	dlib::image_window test(img_Matrix.getIthImageOfJthCategory(0,0));
-
+    if (img_Matrix.loadImagesFromPath(path,imagesize,imagesize,cellsize,rowPadding, colPadding) != 0) return 0;
+    //dlib::image_window test(dlib::draw_fhog(img_Matrix.getFeatureOfIthImageOfJthCategory(0, 0)));
+    //std::cin.get();
     //while(nu < 0.019)
 
     //string setup = "imagesize ="  + std::to_string(imagesize) + " cellsize = " +
@@ -57,9 +57,7 @@ int main(void)
     //auto confMat = confMatrix(validation,img_Matrix);
     //printResults(confMat);
 
-    high_resolution_clock::time_point t2 = high_resolution_clock::now();
-    auto duration = duration_cast<seconds>( t2 - t1 ).count();
-    cerr << "time to compute: " << duration << " seconds" << std::endl;
+
 
     //storeMatrixOnDisk(confMat, duration, setup);
 
@@ -75,7 +73,7 @@ int main(void)
 
     //------------------------------------------------------------------------------------------------------------------
     // build test set for each fold
-    std::vector < sample_type > testFeatures;
+   /* std::vector < sample_type > testFeatures;
 
     int countImages = 0;
     for(uint i = 0;i < img_Matrix.getNrCategories(); i++)
@@ -135,9 +133,18 @@ int main(void)
 #endif
             count++;
         }
-    }
+    }*/
 
     //------------------------------------------------------------------------------------------------------------------
+
+
+    std::vector < sample_type > testFeatures;
+
+    int dim1 = std::max((int)std::round((float)imagesize/(float)cellsize)-2,0) + colPadding-1;
+    int dim2 = std::max((int)std::round((float)imagesize/(float)cellsize)-2,0) + rowPadding-1;
+    const int featureSize = dim1*dim2*31;
+
+
 
     float prediction = 0.f;
     int counter = 0;
@@ -145,11 +152,32 @@ int main(void)
     {
         for(uint img_j = 0; img_j < img_Matrix.getAllImagesOfIthClass(cat_i).size(); img_j++)    // images
         {
+
+            std::vector< float > flat_values;
+            for (int j = 0; j < img_Matrix.getFeatureOfIthImageOfJthCategory(img_j,cat_i).nc(); j++)
+            {
+                for (int k = 0; k < img_Matrix.getFeatureOfIthImageOfJthCategory(img_j,cat_i).nr(); k++)
+                {
+                    for (int l = 0; l < 31; l++)
+                    {
+                        flat_values.push_back(img_Matrix.getFeatureOfIthImageOfJthCategory(img_j,cat_i)[j][k](l));
+                    }
+                }
+            }
+            dlib::matrix < float, 0, 1 > temp_mat;
+            temp_mat.set_size(featureSize,1);
+            for (int j = 0; j < featureSize; j++)
+            {
+                temp_mat(j) = (flat_values.at(j));
+
+            }
+            testFeatures.push_back(temp_mat);
+
             for(uint classifier_k = 0; classifier_k < validation.getClassifierData().size(); classifier_k++)
             {
                 // naiv version: sum up predictions, normalize with predictions per class
                 funct_type learnedF = validation.getClassifierData()[classifier_k].getLearnedFunction();
-                prediction = learnedF(testFeatures.at(counter));
+                prediction = learnedF(testFeatures.back());
 
                 if(prediction == 1.f)
                     matrix[cat_i][classifier_k]++;
@@ -157,6 +185,10 @@ int main(void)
             counter++;
         }
     }
+
+    high_resolution_clock::time_point t2 = high_resolution_clock::now();
+    auto duration = duration_cast<seconds>( t2 - t1 ).count();
+    cerr << "time to compute: " << duration << " seconds" << std::endl;
 
     auto confMat = confMatrix(matrix,img_Matrix);
     printResults(confMat);
