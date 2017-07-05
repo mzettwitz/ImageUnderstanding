@@ -34,8 +34,9 @@ int main(void)
     string setup = "imagesize ="  + std::to_string(imagesize) + " cellsize = " +
             std::to_string(cellsize) + " type = " + type + " nu = " + std::to_string(nu);
 
-    if (img_Matrix.loadImagesFromPath(path,imagesize,imagesize) != 0) return 0;
-
+    if (img_Matrix.loadImagesFromPath(path,imagesize,imagesize,cellsize,rowPadding, colPadding) != 0) return 0;
+	dlib::image_window test(dlib::draw_fhog(img_Matrix.getFeatureOfIthImageOfJthCategory(0, 0)));
+	system("Pause");
     //while(nu < 0.019)
 
     //string setup = "imagesize ="  + std::to_string(imagesize) + " cellsize = " +
