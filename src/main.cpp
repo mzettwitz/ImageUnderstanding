@@ -70,16 +70,22 @@ int main(void)
 
     //------------------------------------------------------------------------------------------------------------------
     // build test set for each fold
+    std::vector < sample_type > testFeatures;
+
     int countImages = 0;
     dlib::array < dlib::array2d < dlib::bgr_pixel>* >* images;
-    for(int i = 0;i < img_Matrix.getNrCategories(); i++)
+    for(uint i = 0;i < img_Matrix.getNrCategories(); i++)
     {
-        for(int j = 0; j < img_Matrix.getAllImagesOfIthClass(i).size(); j++)
+        for(uint j = 0; j < img_Matrix.getAllImagesOfIthClass(i).size(); j++)
         {
             countImages++;
-            images->push_back(img_Matrix.getIthImageOfJthCategory(i,j));
+            images->push_back(&(img_Matrix.getIthImageOfJthCategory(i,j)));
         }
     }
+
+    int dim1 = std::max((int)std::round((float)imagesize/(float)cellsize)-2,0) + colPadding-1;
+    int dim2 = std::max((int)std::round((float)imagesize/(float)cellsize)-2,0) + rowPadding-1;
+    const int featureSize = dim1*dim2*31;
 
     std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_test_features(countImages);
     for (unsigned int i = 0; i < images->size(); i++)
@@ -125,18 +131,21 @@ int main(void)
 
     //------------------------------------------------------------------------------------------------------------------
 
-
-    for(int cat_i = 0; cat_i < img_Matrix.getNrCategories(); cat_i++)   // classes
+    float prediction = 0.f;
+    int counter = 0;
+    for(uint cat_i = 0; cat_i < img_Matrix.getNrCategories(); cat_i++)   // classes
     {
-        for(int img_j; img_j < img_Matrix.getAllImagesOfIthClass(cat_i).size(); img_j++)    // images
+        for(uint img_j; img_j < img_Matrix.getAllImagesOfIthClass(cat_i).size(); img_j++)    // images
         {
-            for(int classifier_k = 0; classifier_k < validation.getClassifierData().size(); classifier_k++)
+            for(uint classifier_k = 0; classifier_k < validation.getClassifierData().size(); classifier_k++)
             {
                 // naiv version: sum up predictions, normalize with predictions per class
                 funct_type learnedF = validation.getClassifierData()[classifier_k].getLearnedFunction();
-                learnedF()
+                prediction = learnedF(testFeatures.at(counter));
+
 
             }
+            counter++;
         }
     }
 
