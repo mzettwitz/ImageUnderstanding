@@ -1,0 +1,55 @@
+This is BibTeX, Version 0.99d (TeX Live 2013/Debian)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: Report.aux
+The style file: plain.bst
+Database file #1: citaviFiles.bib
+Warning--I'm ignoring Fre95's extra "year" field
+--line 266 of file citaviFiles.bib
+Warning--entry type for "McC86" isn't style-file defined
+--line 517 of file citaviFiles.bib
+Warning--I'm ignoring OPH94's extra "year" field
+--line 562 of file citaviFiles.bib
+Warning--I'm ignoring OPH94's extra "year" field
+--line 563 of file citaviFiles.bib
+You've used 4 entries,
+            2118 wiz_defined-function locations,
+            524 strings with 4548 characters,
+and the built_in function-call counts, 1456 in all, are:
+= -- 147
+> -- 45
+< -- 2
++ -- 18
+- -- 14
+* -- 83
+:= -- 220
+add.period$ -- 12
+call.type$ -- 4
+change.case$ -- 19
+chr.to.int$ -- 0
+cite$ -- 4
+duplicate$ -- 64
+empty$ -- 132
+format.name$ -- 14
+if$ -- 324
+int.to.chr$ -- 0
+int.to.str$ -- 4
+missing$ -- 3
+newline$ -- 23
+num.names$ -- 8
+pop$ -- 28
+preamble$ -- 1
+purify$ -- 15
+quote$ -- 0
+skip$ -- 55
+stack$ -- 0
+substring$ -- 109
+swap$ -- 24
+text.length$ -- 2
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 16
+warning$ -- 0
+while$ -- 16
+width$ -- 5
+write$ -- 45
+(There were 4 warnings)

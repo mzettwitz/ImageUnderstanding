@@ -1,0 +1,26 @@
+\begin{thebibliography}{1}
+
+\bibitem{DT05}
+N.~Dalal and B.~Triggs.
+\newblock {Histograms of Oriented Gradients for Human Detection}.
+\newblock In {\em {Conference on Computer Vision and Pattern Recognition:
+  CVPR}}, pages 886--893, 2005.
+
+\bibitem{Fre95}
+Yoav Freund.
+\newblock {Boosting a Weak Learning Algorithm by Majority}.
+\newblock {\em {Information and Computation}}, 121(2):256--285, 1995.
+
+\bibitem{McC86}
+R.~K. McConnell.
+\newblock {Method of and apparatus for pattern recognition}, 1986.
+\newblock US Patent 4,567,610.
+
+\bibitem{OPH94}
+T.~Ojala, M.~Pietikainen, and D.~Harwood.
+\newblock {Performance evaluation of texture measures with classification based
+  on Kullback discrimination of distributions}.
+\newblock In {\em {Conference on Computer Vision and Pattern Recognition:
+  CVPR}}, pages 582--585, 1994.
+
+\end{thebibliography}

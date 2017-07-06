@@ -83,30 +83,29 @@ Therefore we implemented two different classifiers.
 \paragraph{AdaBoost}
 Adaptive Boosting \cite{Fre95} is machine learning approach, that is based on so called \textit{weak classifiers} that will form a \textit{strong classifier}. Each weak classifier is assigned to randomly generated feature, its prediction is just slightly better than random guessing. The power of the technique is done by combining the best $n$ weak classifiers to a strong classifier as a powerful descriptor. The weak classifiers are trained by supervised learning where each weak classifier predicts the samples. Based on that prediction the error rate is assigned to the individual weak classifier. Additionally each sample is weighted by its significance (error rate of the best weak classifier) to emphasize unseen and hard to predict training data. Based on that significance weight and the error rate of a weak classifier, each weak classifier that is combined to the strong one is weighted, too.
 \paragraph{SVM}
-A Support-Vector-Machine basically tries to define a hyperplane to distinguish between classes in datasets. Therefore support-vectors are created, that maximizes the distance between the closest points of (two) classes. To separate between non-linear datasets, the feature space is mapped onto an higher dimensional space, using a kernel, where a linear separation is possible. Mapped back onto the original feature space one obtains the hyperplane. This way even initial high dimensional datasets can be distinguished. To reduce the computational effort one uses Mercer's theorem, that only implicitly computes the data in the higher dimension, but instead uses a kernel function. Well used kernels are polynomial kernels and radial-base-function kernels like Gaussian. We used a Nu-SVM with parameter $Nu$ as constrain for the hyperplane in a range of $[0,1]$. We tested several values by iteratively increasing $Nu$ until the classification error was minimized with a $Nu$-value of $0.00511$ 
+A Support-Vector-Machine basically tries to define a hyperplane to distinguish between classes in datasets. Therefore support-vectors are created, that maximizes the distance between the closest points of (two) classes. To separate between non-linear datasets, the feature space is mapped onto an higher dimensional space, using a kernel, where a linear separation is possible. Mapped back onto the original feature space one obtains the hyperplane. This way even initial high dimensional datasets can be distinguished. To reduce the computational effort one uses Mercer's theorem, that only implicitly computes the data in the higher dimension, but instead uses a kernel function. Well used kernels are polynomial kernels and radial-base-function kernels like Gaussian. We used a $\nu$-SVM with parameter $\nu$ as constrain for the support vectors on the wrong side of the hyperplane in a range of $[0,1]$ and $\gamma$ as variance of the Gaussian inside the rbf-kernel. We tested several values by iteratively increasing $\gamma$ and $\nu$ independent from each other, until the classification error was minimized with a $\nu$ of $0.00511$ and $\gamma$ of $0.0001$.
 
 \section{Training and Validation}
-To train and validate our approach we used a 10-fold cross validation. 
-This method divides the data set in 10 subsets of equal size. Each fold contains the same amount of images from each class, were the target class is labeled as positive sample and the other classes as negative samples. 9 folds will be trained and the last one is for testing of the classifier.
-This is an iterative process and will be performed using permutation until each fold was tested.
+To train and validate our approach we used a 10-fold cross validation in one vs all manner. 
+This method divides the data set in 10 subsets of equal size. Each fold contains the same amount of images from each class, were each class has its own label. 9 folds will be trained and the last one is for testing of the classifier. This is an iterative process and will be performed using permutation until each fold was tested.
 \paragraph{Validated Images}
-To observe the process, we counted the number of predictions and assigned the positive predictions to the predicted class.
-To prepare a balanced test we detect the smallest number of samples in a class and took the same number of samples of the other classes in the training and testing. 
+To observe the process, the number of predictions is counted and the positive predictions are assigned  to the predicted class.
+To prepare a balanced test, we detect the smallest number of samples in a class and selected the same number of samples of the other classes in the training and testing. 
 Consequently we preserve that the same number of images will be tested and trained.
 \section{Results}
-Our best result was 46.69 \% of correct predicitons.
-We achieved this result with an image size of 64 x 64 , HOG features with cellsize 8 and a SVM classifier with a nu of 0.004652.
+Our best result was 55.21 \% of correct predicitons.
+We achieved this result with an image size of 128 x 128 , HOG features with cellsize 8 and a SVM classifier with an RBF-Kernel, $\nu$ of 0.004652 and gamma of 0.0001.
 Similar results were achieved with an image size of 128 x 128 and a cellsize of 16, which was expected, since the resulting feature images were really similar.
-Since the SVM classifier yields better results and was faster (e.g. when SVM achieved 46\% in 6 minutes, AdaBoost achieved 38\% and took 9 minutes) we focused our testing runs on SVM.
+Since the SVM classifier yields better results and was faster (e.g. when SVM achieved 50\% in 2 minutes, AdaBoost achieved 38\% and took 9 minutes) we focused our testing runs on SVM.
 Boost seemed to have a problem with overfitting, due to time limitations we didn´t inspect this issue further when we had an alternative at hand.
 LBP features turned out to be a weak features in the context of the CalTech101 Challenge and the used classifiers.
-The best prediction rate we achieved with LBP was 31.28\%, suprisingly with image size of 64 x 64 and a cellsize of 64 in only 2 1/2 minutes. So every feature vector for an image was only 59 float entries long. Even runs with a cellsize of 8, which yielded in a feature vector per image of length 3776 only achieved 29\% and took 108 minutes.
+The best prediction rate we achieved with LBP was 31.28\%, suprisingly with image size of 64 x 64 and a cellsize of 64 in only 2 1/2 minutes. So every feature vector for an image was only 59 float entries long. Even runs with a cellsize of 8, which yielded in a feature vector per image of length 3776 only achieved 29\% and took 108 minutes to compute.
 We conclude that LBP got all the necessary information even on small image sizes / big cellsizes. 
 
-Our strongest classes where anchor and revolver, with around 80\% of correct predictions. 
+Our strongest classes where anchor and revolver, with around 100\% of correct predictions. 
 The images in this classes have strong and mostly clear edges, which is exactly the information we wanted to extract with the HOG features. 
 Also the objects in the images had often the same orientation, which would have been a weak point with this feature.
-The weakest class was faces\_easy, which is understandable since there is a class faces, too. Class Garfiled was precited correct only 15\% of the time. Even though the edges are clear on the images, the orienation and his posture changes, which gives very different feature vectors for the same class.
+The weakest classes was backgrounds and water lilly, which is understandable since there the background class is just randomly chosen images. 
 
 You can see our results in a confusion matrix in the appendix (confMat.xlsx)
 
