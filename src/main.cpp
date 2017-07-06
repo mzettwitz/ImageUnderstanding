@@ -54,7 +54,12 @@ int main(void)
 			labels.push_back(i);
 		}
 	}
-    dlib::one_vs_all_trainer<dlib::any_trainer<sample_type> > trainer;
+
+    //--------------
+    setup += " one_vs_one";
+    dlib::one_vs_one_trainer<dlib::any_trainer<sample_type> > trainer;
+    //--------------
+
     trainer.set_num_threads(std::thread::hardware_concurrency());
     dlib::svm_nu_trainer<kernel_type> svmTrainer;
     svmTrainer.set_nu(nu);
@@ -68,6 +73,8 @@ int main(void)
     high_resolution_clock::time_point t2 = high_resolution_clock::now();
     auto duration = duration_cast<seconds>(t2 - t1).count();
     cerr << "time to compute: " << duration << " seconds" << std::endl;
+
+
 
     printResults(confMat);
     storeMatrixOnDisk(confMat, duration, setup, img_Matrix);
