@@ -69,10 +69,10 @@ int Calltech_Image_Matrix::loadImagesFromPath(cv::String path, int width, int he
 		//create hog feature
 		m_all_feature_data[categories_nr].resize(img_nr_in_cl);
 
-		dlib::array2d < dlib::matrix<float, 31, 1> > features;
+		dlib::array2d < dlib::matrix<double, 31, 1> > features;
 		dlib::extract_fhog_features(img_resized, features, cellsize, rowPadding, colPadding);
 		
-		std::vector< float > flat_values;
+		std::vector< double > flat_values;
 		for (int j = 0; j < features.nc(); j++)
 		{
 			for (int k = 0; k < features.nr(); k++)
@@ -83,7 +83,7 @@ int Calltech_Image_Matrix::loadImagesFromPath(cv::String path, int width, int he
 				}
 			}
 		}
-		dlib::matrix < float, 0, 1 > temp_mat;
+		dlib::matrix < double, 0, 1 > temp_mat;
 		temp_mat.set_size(featureSize, 1);
 		for (uint j = 0; j < flat_values.size(); j++)
 		{

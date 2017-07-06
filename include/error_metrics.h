@@ -8,6 +8,7 @@
 #include "include/Calltech_Image_Matrix.h"
 #include "include/ClassifierData.h"
 #include "include/KFoldValidation.h"
+#include "include/Calltech_Image_Matrix.h"
 
 #include <iostream>
 //#include <fstab.h>
@@ -69,7 +70,7 @@ inline void printResults(std::vector< std::vector <float> > &confMat)
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-inline bool storeMatrixOnDisk(std::vector< std::vector <float> > confMat, int time, std::string setup)
+inline bool storeMatrixOnDisk(std::vector< std::vector <float> > confMat, int time, std::string setup, Calltech_Image_Matrix &img_mat)
 {
     std::ofstream file;
     std::string filename = "confMatrix" + setup + ".csv";
@@ -79,12 +80,12 @@ inline bool storeMatrixOnDisk(std::vector< std::vector <float> > confMat, int ti
     file << "\nComputation time in seconds: \t" << time;
     file << "\n\n\n==========================================\nRESULTS\n\t";
     for(unsigned int i = 0; i < confMat.size();i++)
-        file << "as " << i << "\t";
+        file << img_mat.getIthCategoryName(i) << "\t";
     file << "error";
 
     for(unsigned int i = 0; i < confMat.size();i++)
     {
-        file << std::endl << "class " << i;
+        file << std::endl << img_mat.getIthCategoryName(i);
         for(unsigned int j = 0; j < confMat[i].size(); j++)
         {
             if(j == confMat[i].size()-1)

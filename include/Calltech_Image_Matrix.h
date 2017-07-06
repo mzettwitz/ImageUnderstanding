@@ -17,7 +17,7 @@
 
 #include <iostream>
 #include <fstream>
-typedef dlib::matrix < float, 1116, 1 > sample_type;
+typedef dlib::matrix < double, 1116, 1 > sample_type;
 
 class Calltech_Image_Matrix
 {

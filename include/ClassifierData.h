@@ -19,7 +19,7 @@
 //#define USE_BOOST   //define if u want to use BOOST Classifier  change also in KFoldValidation.h
 
 typedef dlib::scan_fhog_pyramid<dlib::pyramid_down<6> > image_scanner_type;
-typedef dlib::matrix < float, 1116, 1 > sample_type;
+typedef dlib::matrix < double, 1116, 1 > sample_type;
 typedef dlib::radial_basis_kernel<sample_type> kernel_type;
 typedef dlib::decision_function<kernel_type> funct_type;
 class ClassifierData

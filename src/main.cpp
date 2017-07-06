@@ -13,10 +13,9 @@
 #include "include/KFoldValidation.h"
 #include "include/error_metrics.h"
 
-
 using namespace std;
 using namespace std::chrono;
-
+#include <dlib/svm_threaded.h>
 int main(void)
 {
     // data organization: make a new directory 'data' in the build directory and extract the
@@ -38,7 +37,25 @@ int main(void)
     string setup = "imagesize ="  + std::to_string(imagesize) + " cellsize = " +
             std::to_string(cellsize) + " type = " + type + " nu = " + std::to_string(nu);
 
-    if (img_Matrix.loadImagesFromPath(path,imagesize,imagesize,cellsize,rowPadding, colPadding) != 0) return 0;
+    if (img_Matrix.loadImagesFromPath(path,imagesize,imagesize,cellsize,rowPadding, colPadding, featureSize) != 0) return 0;
+	std::vector< sample_type > samples (img_Matrix.getNrCategories() * 31);
+	std::vector < double > labels;
+	for (int i = 0; i < img_Matrix.getNrCategories(); i++)
+	{
+		for (int j = 0; j < 31; j++)
+		{
+			img_Matrix.getFlatFeatureOfIthImageOfJthCategory(j, i).swap(samples[i * 31 + j]);
+			labels.push_back(i);
+		}
+	}
+	dlib::one_vs_one_trainer<dlib::any_trainer<sample_type> > trainer;
+	dlib::svm_nu_trainer<kernel_type> svmTrainer;
+	svmTrainer.set_nu(nu);
+	svmTrainer.set_kernel(kernel_type(nu));
+	trainer.set_trainer(svmTrainer);
+	dlib::randomize_samples(samples, labels);
+	cout << "cross validation: \n" << cross_validate_multiclass_trainer(trainer, samples, labels, 5) << endl;
+	/*
     //dlib::image_window test(dlib::draw_fhog(img_Matrix.getFeatureOfIthImageOfJthCategory(0, 0)));
     //std::cin.get();
     //while(nu < 0.019)
@@ -50,6 +67,12 @@ int main(void)
 
     KFoldValidation validation(img_Matrix.getNrCategories());
     validation.create10Fold(img_Matrix.getAllImages(), cellsize, imagesize, nu);
+
+	high_resolution_clock::time_point t2 = high_resolution_clock::now();
+	auto duration = duration_cast<seconds>(t2 - t1).count();
+	cerr << "time to compute: " << duration << " seconds" << std::endl;
+
+
 
     //validation.printErrorMatrix();
     //std::cout << "\n\nPlain RESULTS\n";
@@ -68,7 +91,9 @@ int main(void)
 
 
     std::vector<std::vector<float> > matrix(img_Matrix.getNrCategories(), std::vector<float>(img_Matrix.getNrCategories()));
-
+	auto confMat = confMatrix(matrix, img_Matrix);
+	printResults(confMat);
+	storeMatrixOnDisk(confMat, duration, setup, img_Matrix);
     // Perform classification
 
     //------------------------------------------------------------------------------------------------------------------
@@ -133,17 +158,12 @@ int main(void)
 #endif
             count++;
         }
-    }*/
+    }
 
     //------------------------------------------------------------------------------------------------------------------
 
 
     std::vector < sample_type > testFeatures;
-
-    int dim1 = std::max((int)std::round((float)imagesize/(float)cellsize)-2,0) + colPadding-1;
-    int dim2 = std::max((int)std::round((float)imagesize/(float)cellsize)-2,0) + rowPadding-1;
-    const int featureSize = dim1*dim2*31;
-
 
 
     float prediction = 0.f;
@@ -186,13 +206,7 @@ int main(void)
         }
     }
 
-    high_resolution_clock::time_point t2 = high_resolution_clock::now();
-    auto duration = duration_cast<seconds>( t2 - t1 ).count();
-    cerr << "time to compute: " << duration << " seconds" << std::endl;
-
-    auto confMat = confMatrix(matrix,img_Matrix);
-    printResults(confMat);
-    storeMatrixOnDisk(confMat, duration, setup);
+	*/
 
     return 0;
 }
