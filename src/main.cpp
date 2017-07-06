@@ -54,7 +54,7 @@ int main(void)
 			labels.push_back(i);
 		}
 	}
-    dlib::one_vs_one_trainer<dlib::any_trainer<sample_type> > trainer;
+    dlib::one_vs_all_trainer<dlib::any_trainer<sample_type> > trainer;
     trainer.set_num_threads(std::thread::hardware_concurrency());
     dlib::svm_nu_trainer<kernel_type> svmTrainer;
     svmTrainer.set_nu(nu);
@@ -62,15 +62,16 @@ int main(void)
 	trainer.set_trainer(svmTrainer);
 	dlib::randomize_samples(samples, labels);
 
-    auto mat = dlib::cross_validate_multiclass_trainer(trainer, samples, labels, 10) << endl;
+    auto mat = dlib::cross_validate_multiclass_trainer(trainer, samples, labels, 10);
     auto confMat = confMatrix(mat, img_Matrix);
-    printResults(confMat);
-    storeMatrixOnDisk(confMat, duration, setup, img_Matrix);
-
 
     high_resolution_clock::time_point t2 = high_resolution_clock::now();
     auto duration = duration_cast<seconds>(t2 - t1).count();
     cerr << "time to compute: " << duration << " seconds" << std::endl;
+
+    printResults(confMat);
+    storeMatrixOnDisk(confMat, duration, setup, img_Matrix);
+
 	/*
     //dlib::image_window test(dlib::draw_fhog(img_Matrix.getFeatureOfIthImageOfJthCategory(0, 0)));
     //std::cin.get();

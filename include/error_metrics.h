@@ -185,7 +185,7 @@ inline std::vector< std::vector <float> > confMatrix(KFoldValidation &validation
 
 
 // Compute confusion Matrix
-inline std::vector< std::vector <float> > confMatrix(double matrix [][], Calltech_Image_Matrix &imageMat)
+inline std::vector< std::vector <float> > confMatrix(dlib::matrix<double> matrix, Calltech_Image_Matrix &imageMat)
 {
 
     int nrCats = imageMat.getNrCategories();
@@ -200,7 +200,7 @@ inline std::vector< std::vector <float> > confMatrix(double matrix [][], Calltec
         float totalPredictions_i = 0.f;
         for(int j = 0; j < nrCats; j++)
         {
-            totalPredictions_i += (float)matrix[i][j];
+            totalPredictions_i += (float)matrix(i,j);
         }
 
 
@@ -208,7 +208,7 @@ inline std::vector< std::vector <float> > confMatrix(double matrix [][], Calltec
         for(int j = 0; j < nrCats; j++)
         {
             if(totalPredictions_i!= 0)
-                confMat[i][j] = (float)(matrix[i][j])/totalPredictions_i;
+                confMat[i][j] = (float)(matrix(i,j))/totalPredictions_i;
         }
 
         // average error for class i
