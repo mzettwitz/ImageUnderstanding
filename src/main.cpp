@@ -7,7 +7,7 @@
 
 #include <dlib/opencv.h>
 #include <dlib/gui_widgets.h>
-#include <dlib/svm.h>
+//#include <dlib/svm.h>
 
 #include "include/Calltech_Image_Matrix.h"
 #include "include/KFoldValidation.h"
@@ -16,6 +16,7 @@
 using namespace std;
 using namespace std::chrono;
 #include <dlib/svm_threaded.h>
+#include <thread>
 int main(void)
 {
     // data organization: make a new directory 'data' in the build directory and extract the
@@ -37,10 +38,15 @@ int main(void)
     string setup = "imagesize ="  + std::to_string(imagesize) + " cellsize = " +
             std::to_string(cellsize) + " type = " + type + " nu = " + std::to_string(nu);
 
+
     if (img_Matrix.loadImagesFromPath(path,imagesize,imagesize,cellsize,rowPadding, colPadding, featureSize) != 0) return 0;
 	std::vector< sample_type > samples (img_Matrix.getNrCategories() * 31);
-	std::vector < double > labels;
-	for (int i = 0; i < img_Matrix.getNrCategories(); i++)
+    std::vector < double > labels;
+
+    high_resolution_clock::time_point t1 = high_resolution_clock::now();
+
+
+    for (int i = 0; i < img_Matrix.getNrCategories(); i++)
 	{
 		for (int j = 0; j < 31; j++)
 		{
@@ -48,13 +54,19 @@ int main(void)
 			labels.push_back(i);
 		}
 	}
-	dlib::one_vs_one_trainer<dlib::any_trainer<sample_type> > trainer;
-	dlib::svm_nu_trainer<kernel_type> svmTrainer;
-	svmTrainer.set_nu(nu);
-	svmTrainer.set_kernel(kernel_type(nu));
+    dlib::one_vs_one_trainer<dlib::any_trainer<sample_type> > trainer;
+    trainer.set_num_threads(std::thread::hardware_concurrency());
+    dlib::svm_nu_trainer<kernel_type> svmTrainer;
+    svmTrainer.set_nu(nu);
+    svmTrainer.set_kernel(kernel_type(nu));
 	trainer.set_trainer(svmTrainer);
 	dlib::randomize_samples(samples, labels);
-	cout << "cross validation: \n" << cross_validate_multiclass_trainer(trainer, samples, labels, 5) << endl;
+    cout << "cross validation: \n" << dlib::cross_validate_multiclass_trainer(trainer, samples, labels, 10) << endl;
+
+
+    high_resolution_clock::time_point t2 = high_resolution_clock::now();
+    auto duration = duration_cast<seconds>(t2 - t1).count();
+    cerr << "time to compute: " << duration << " seconds" << std::endl;
 	/*
     //dlib::image_window test(dlib::draw_fhog(img_Matrix.getFeatureOfIthImageOfJthCategory(0, 0)));
     //std::cin.get();
