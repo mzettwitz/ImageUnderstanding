@@ -68,6 +68,17 @@ inline void printResults(std::vector< std::vector <float> > &confMat)
     std::cout << "\nAverage Prediction: " << 1.f - avgError;
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+
+inline float avgPrediction(std::vector< std::vector <float> > &confMat)
+{
+    float avgError = 0.f;
+    for(uint i = 0; i < confMat.size(); i++)
+        avgError += confMat[i][confMat.size()];
+    avgError /= confMat.size();
+    return 1.f - avgError;
+}
+
 // ---------------------------------------------------------------------------------------------------------------------
 
 inline bool storeMatrixOnDisk(std::vector< std::vector <float> > confMat, int time, std::string setup, Calltech_Image_Matrix &img_mat)

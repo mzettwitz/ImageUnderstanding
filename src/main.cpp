@@ -32,18 +32,16 @@ int main(void)
 	int dim1 = std::max((int)std::round((float)imagesize / (float)cellsize) - 2, 0) + colPadding - 1;
 	int dim2 = std::max((int)std::round((float)imagesize / (float)cellsize) - 2, 0) + rowPadding - 1;
 	const int featureSize = dim1*dim2 * 31;
+    std::cerr << featureSize;
 
-    double nu = 0.0043;//0.015;
-    string type = "SVM";
-    string setup = "imagesize ="  + std::to_string(imagesize) + " cellsize = " +
-            std::to_string(cellsize) + " type = " + type + " nu = " + std::to_string(nu);
+
 
 
     if (img_Matrix.loadImagesFromPath(path,imagesize,imagesize,cellsize,rowPadding, colPadding, featureSize) != 0) return 0;
 	std::vector< sample_type > samples (img_Matrix.getNrCategories() * 31);
     std::vector < double > labels;
 
-    high_resolution_clock::time_point t1 = high_resolution_clock::now();
+    //high_resolution_clock::time_point t1 = high_resolution_clock::now();
 
 
     for (int i = 0; i < img_Matrix.getNrCategories(); i++)
@@ -56,9 +54,67 @@ int main(void)
 	}
 
     //--------------
-    setup += " one_vs_one";
-    dlib::one_vs_one_trainer<dlib::any_trainer<sample_type> > trainer;
-    //--------------
+    //double nu = 0.0043;//0.015;
+
+    double nu = 0.0001;
+    double gamma = 0.0001;
+    float bestPrediction = 0.f;
+    float currentPrediction = 0.f;
+    float bestNu = 0.f;
+    float bestGamma = 0.f;
+    std::vector<std::vector<float> > bestMat;
+
+
+
+    while(gamma < 1.0)
+    {
+        nu = 0.0001;
+        while(nu < 0.19)
+        {
+
+            dlib::one_vs_all_trainer<dlib::any_trainer<sample_type> > trainer;
+
+            trainer.set_num_threads(std::thread::hardware_concurrency());
+            dlib::svm_nu_trainer<kernel_type> svmTrainer;
+            svmTrainer.set_nu(nu);
+            svmTrainer.set_kernel(kernel_type(nu));
+            trainer.set_trainer(svmTrainer);
+            dlib::randomize_samples(samples, labels);
+
+            auto mat = dlib::cross_validate_multiclass_trainer(trainer, samples, labels, 10);
+            auto confMat = confMatrix(mat, img_Matrix);
+            currentPrediction = avgPrediction(confMat);
+
+            if(currentPrediction > bestPrediction)
+            {
+                bestPrediction = currentPrediction;
+                bestNu = nu;
+                bestGamma = gamma;
+                bestMat = confMat;
+
+                std::cout << "\n currentBestPred: " << currentPrediction << " gamma " << gamma << " nu " << nu << std::endl;
+            }
+
+            nu *= 1.5;
+            if(currentPrediction < bestPrediction * 0.9 &&  currentPrediction > 0.4f)
+                break;
+        }
+        gamma *= 1.5;
+        if(currentPrediction < bestPrediction * 0.9 &&  currentPrediction > 0.4f)
+            break;
+    }
+
+    string type = "SVM";
+    string setup = "imagesize ="  + std::to_string(imagesize) + " cellsize = " +
+            std::to_string(cellsize) + " type = " + type + " nu = " + std::to_string(bestNu) + " gamma = " + std::to_string(bestGamma);
+    setup += " one_vs_all";
+
+    printResults(bestMat);
+    storeMatrixOnDisk(bestMat, 116, setup, img_Matrix);
+
+
+/*
+    dlib::one_vs_all_trainer<dlib::any_trainer<sample_type> > trainer;
 
     trainer.set_num_threads(std::thread::hardware_concurrency());
     dlib::svm_nu_trainer<kernel_type> svmTrainer;
@@ -75,9 +131,7 @@ int main(void)
     cerr << "time to compute: " << duration << " seconds" << std::endl;
 
 
-
-    printResults(confMat);
-    storeMatrixOnDisk(confMat, duration, setup, img_Matrix);
+*/
 
 	/*
     //dlib::image_window test(dlib::draw_fhog(img_Matrix.getFeatureOfIthImageOfJthCategory(0, 0)));
