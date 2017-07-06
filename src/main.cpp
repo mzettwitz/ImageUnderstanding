@@ -61,7 +61,11 @@ int main(void)
     svmTrainer.set_kernel(kernel_type(nu));
 	trainer.set_trainer(svmTrainer);
 	dlib::randomize_samples(samples, labels);
-    cout << "cross validation: \n" << dlib::cross_validate_multiclass_trainer(trainer, samples, labels, 10) << endl;
+
+    auto mat = dlib::cross_validate_multiclass_trainer(trainer, samples, labels, 10) << endl;
+    auto confMat = confMatrix(mat, img_Matrix);
+    printResults(confMat);
+    storeMatrixOnDisk(confMat, duration, setup, img_Matrix);
 
 
     high_resolution_clock::time_point t2 = high_resolution_clock::now();
