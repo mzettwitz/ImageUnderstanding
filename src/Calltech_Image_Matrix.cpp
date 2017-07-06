@@ -15,7 +15,7 @@ Calltech_Image_Matrix::~Calltech_Image_Matrix()
 // ---------------------------------------------------------------------------------------------------------------------
 
 // load all images in a folder recursively
-int Calltech_Image_Matrix::loadImagesFromPath(cv::String path, int width, int height)
+int Calltech_Image_Matrix::loadImagesFromPath(cv::String path, int width, int height, int cellsize, int rowPadding, int colPadding, const int featureSize)
 {
     // get all image paths
     std::vector < cv::String  > all_img_paths;
@@ -23,7 +23,7 @@ int Calltech_Image_Matrix::loadImagesFromPath(cv::String path, int width, int he
 
     cv::String class_name_last = "X";
     size_t categories_nr = -1;
-
+	size_t img_nr_in_cl = 0;
     // loop over all paths
     for (uint i = 0; i < all_img_paths.size(); i++)
     {
@@ -46,6 +46,9 @@ int Calltech_Image_Matrix::loadImagesFromPath(cv::String path, int width, int he
             class_name_last = class_name_current;
 
             m_all_image_data.resize(categories_nr + 1);
+			m_all_feature_data.resize(categories_nr + 1);
+			m_all_flat_features.resize(categories_nr + 1);
+			img_nr_in_cl = 0;
         }
 
         // load the img and check if data was read in
@@ -57,14 +60,43 @@ int Calltech_Image_Matrix::loadImagesFromPath(cv::String path, int width, int he
             std::cout << "Fehler beim lesen des Bildes mit dem Pfad" << all_img_paths.at(i);
             return 1;
         }
+		img_nr_in_cl++;
         // resize the image
         dlib::array2d< dlib::bgr_pixel > img_resized(width,height);
 
         dlib::resize_image(img, img_resized);
 
-        // save the image in the right categorie
+		//create hog feature
+		m_all_feature_data[categories_nr].resize(img_nr_in_cl);
 
+		dlib::array2d < dlib::matrix<double, 31, 1> > features;
+		dlib::extract_fhog_features(img_resized, features, cellsize, rowPadding, colPadding);
+		
+		std::vector< double > flat_values;
+		for (int j = 0; j < features.nc(); j++)
+		{
+			for (int k = 0; k < features.nr(); k++)
+			{
+				for (int l = 0; l < 31; l++)
+				{
+					flat_values.push_back(features[j][k](l));
+				}
+			}
+		}
+		dlib::matrix < double, 0, 1 > temp_mat;
+		temp_mat.set_size(featureSize, 1);
+		for (uint j = 0; j < flat_values.size(); j++)
+		{
+			temp_mat(j) = (flat_values.at(j));
+
+		}
+		m_all_flat_features[categories_nr].resize(img_nr_in_cl);
+		m_all_flat_features[categories_nr][img_nr_in_cl - 1] = temp_mat;
+
+        // save the image in the right categorie
         m_all_image_data[categories_nr].push_back(img_resized);
+
+		
     }
 
     // setup the ROI vector

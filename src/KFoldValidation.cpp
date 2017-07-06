@@ -27,6 +27,7 @@ KFoldValidation::KFoldValidation(int nrClasses)
 {
     m_NrClasses = nrClasses;
     m_error_matrix = std::vector<std::vector<int> > (m_NrClasses,std::vector<int>(m_NrClasses));
+    //m_classifier = std::vector<ClassifierData>(nrClasses);
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -52,6 +53,7 @@ int KFoldValidation::create10Fold(dlib::array < dlib::array < dlib::array2d < dl
     m_initalFolds = createInitialFolds(k, smallestClassSize, m_all_image_data);
 
     std::cout << "progress: 0%" << std::flush;
+    int counter = 0;
 
     int class_i = 0;
     while (class_i < m_NrClasses)
@@ -73,6 +75,8 @@ int KFoldValidation::create10Fold(dlib::array < dlib::array < dlib::array2d < dl
                 CPU_SET(i, &cpuset);
                 pthread_setaffinity_np(threadArr[i].native_handle(), sizeof(cpu_set_t), &cpuset);
 #endif
+
+                counter ++;
             }
         }
         // less operations/iterations than threads => use remaining number of threads
@@ -81,6 +85,7 @@ int KFoldValidation::create10Fold(dlib::array < dlib::array < dlib::array2d < dl
             numOps = (m_NrClasses-class_i) % numThreads;
             for(int i = 0; i < numOps; i++)
             {
+                threadedClassifiers[i] = ClassifierData (m_NrClasses, class_i, 1); // 1 for boost Classifier
                 threadArr[i] = std::thread(&KFoldValidation::prepareTraining,this, class_i++,
                                            std::ref(threadedClassifiers[i]),k,
                                            std::ref(m_all_image_data), cellsize, imagesize, nu); //function pointer, object, param
@@ -169,11 +174,11 @@ void KFoldValidation::trainClass(int class_i, ClassifierData& classi_data, int k
     cv::Mat features, labels, testFeatures;
 #else
     std::vector < sample_type > features, testFeatures;
-    std::vector < float > labels;
+    std::vector < double > labels;
 #endif
     // create Lists for Trainig and Testing
-    std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_training_features(smallestClassSize);
-    std::vector < dlib::array2d<dlib::matrix<float, 31, 1> > > hog_test_features(smallestClassSize);
+    std::vector < dlib::array2d<dlib::matrix<double, 31, 1> > > hog_training_features(smallestClassSize);
+    std::vector < dlib::array2d<dlib::matrix<double, 31, 1> > > hog_test_features(smallestClassSize);
     int colPadding = 1;
     int rowPadding = 1;
 
@@ -217,7 +222,7 @@ void KFoldValidation::trainClass(int class_i, ClassifierData& classi_data, int k
                 flat_values.convertTo(flat_values, CV_32F);
                 features.push_back(flat_values);
 #else
-                std::vector< float > flat_values ;
+                std::vector< double > flat_values ;
                 for (int j = 0; j < hog_training_features[0].nc(); j++)
                 {
                     for (int k = 0; k < hog_training_features[0].nr(); k++)
@@ -228,7 +233,7 @@ void KFoldValidation::trainClass(int class_i, ClassifierData& classi_data, int k
                         }
                     }
                 }
-                dlib::matrix < float, 0, 1 > temp_mat;
+                dlib::matrix < double, 0, 1 > temp_mat;
                 temp_mat.set_size(featureSize,1);
                 for (uint j = 0; j < flat_values.size() ; j++)
                 {
@@ -268,7 +273,7 @@ void KFoldValidation::trainClass(int class_i, ClassifierData& classi_data, int k
             flat_values.convertTo(flat_values, CV_32F);
             testFeatures.push_back(flat_values);
 #else
-            std::vector< float > flat_values;
+            std::vector< double > flat_values;
             for (int j = 0; j < hog_test_features[0].nc(); j++)
             {
                 for (int k = 0; k < hog_test_features[0].nr(); k++)
@@ -279,7 +284,7 @@ void KFoldValidation::trainClass(int class_i, ClassifierData& classi_data, int k
                     }
                 }
             }
-            dlib::matrix < float, 0, 1 > temp_mat;
+            dlib::matrix < double, 0, 1 > temp_mat;
             temp_mat.set_size(featureSize,1);
             for (int j = 0; j < featureSize; j++)
             {
@@ -322,7 +327,7 @@ void KFoldValidation::trainClass(int class_i, ClassifierData& classi_data, int k
     classifier.set_kernel(kernel_type(nu));
     //std::cout << "nu was set to : " << classifier.get_nu() << std::endl;
     //std::cout << "Max nu: " << max_nu << std::endl;
-    funct_type learned_function;
+    funct_type learned_function = classi_data.getLearnedFunction();
     try
     {
         learned_function = classifier.train(features, labels);
@@ -331,7 +336,7 @@ void KFoldValidation::trainClass(int class_i, ClassifierData& classi_data, int k
     {
         std::cout << std::endl << e.what() << std::endl;
     }
-    std::vector < float > results;
+    std::vector < double > results;
     for (uint i = 0; i < testFeatures.size(); i++)
     {
         float prediction = learned_function(testFeatures.at(i));

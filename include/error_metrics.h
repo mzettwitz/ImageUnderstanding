@@ -8,6 +8,7 @@
 #include "include/Calltech_Image_Matrix.h"
 #include "include/ClassifierData.h"
 #include "include/KFoldValidation.h"
+#include "include/Calltech_Image_Matrix.h"
 
 #include <iostream>
 //#include <fstab.h>
@@ -67,9 +68,20 @@ inline void printResults(std::vector< std::vector <float> > &confMat)
     std::cout << "\nAverage Prediction: " << 1.f - avgError;
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+
+inline float avgPrediction(std::vector< std::vector <float> > &confMat)
+{
+    float avgError = 0.f;
+    for(uint i = 0; i < confMat.size(); i++)
+        avgError += confMat[i][confMat.size()];
+    avgError /= confMat.size();
+    return 1.f - avgError;
+}
+
 // ---------------------------------------------------------------------------------------------------------------------
 
-inline bool storeMatrixOnDisk(std::vector< std::vector <float> > confMat, int time, std::string setup)
+inline bool storeMatrixOnDisk(std::vector< std::vector <float> > confMat, int time, std::string setup, Calltech_Image_Matrix &img_mat)
 {
     std::ofstream file;
     std::string filename = "confMatrix" + setup + ".csv";
@@ -79,12 +91,12 @@ inline bool storeMatrixOnDisk(std::vector< std::vector <float> > confMat, int ti
     file << "\nComputation time in seconds: \t" << time;
     file << "\n\n\n==========================================\nRESULTS\n\t";
     for(unsigned int i = 0; i < confMat.size();i++)
-        file << "as " << i << "\t";
+        file << img_mat.getIthCategoryName(i) << "\t";
     file << "error";
 
     for(unsigned int i = 0; i < confMat.size();i++)
     {
-        file << std::endl << "class " << i;
+        file << std::endl << img_mat.getIthCategoryName(i);
         for(unsigned int j = 0; j < confMat[i].size(); j++)
         {
             if(j == confMat[i].size()-1)
@@ -104,7 +116,44 @@ inline bool storeMatrixOnDisk(std::vector< std::vector <float> > confMat, int ti
     file.close();
     return true;
 }
+// ---------------------------------------------------------------------------------------------------------------------
 
+// overload Function for confusion Matrix with std vector float 
+
+inline std::vector< std::vector <float>> confMatrix(std::vector <std::vector<float>> validation,Calltech_Image_Matrix &imageMat)//, int smallestClass)
+{
+	int nrCats = imageMat.getNrCategories();
+	// reserve capacity for all N classes and all N errors + average error per class: NxN+1 matrix
+	std::vector< std::vector <float> > confMat(nrCats, std::vector<float>(nrCats + 1));
+
+	// iterate over all classes
+	for (int i = 0; i < nrCats; i++)
+	{
+		float totalPredictions_i = 0.f;
+		for (int j = 0; j < nrCats; j++)
+		{
+            //if (j == i)
+                //totalPredictions_i += smallestClass;
+            //else
+				totalPredictions_i += validation.at(i).at(j);
+		}
+
+
+		// iterate over all classes and normalize predicted results
+		for (int j = 0; j < nrCats; j++)
+		{
+			if (totalPredictions_i != 0)
+				confMat[i][j] = (validation.at(i).at(j)) / totalPredictions_i;
+		}
+
+		// average error for class i
+		confMat[i][nrCats] = 1.f - confMat[i][i];//classError(i, validation.getErrorMatrix().at(i));
+	}
+
+
+
+	return confMat;
+}
 // ---------------------------------------------------------------------------------------------------------------------
 
 // Compute confusion Matrix
@@ -143,4 +192,39 @@ inline std::vector< std::vector <float> > confMatrix(KFoldValidation &validation
     return confMat;
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+
+
+// Compute confusion Matrix
+inline std::vector< std::vector <float> > confMatrix(dlib::matrix<double> matrix, Calltech_Image_Matrix &imageMat)
+{
+
+    int nrCats = imageMat.getNrCategories();
+
+    // reserve capacity for all N classes and all N errors + average error per class: NxN+1 matrix
+    std::vector< std::vector <float> > confMat(nrCats,std::vector<float>(nrCats+1));
+    //confMat.resize( nrCats , std::vector<double>( nrCats+1, 0.f));
+
+    // iterate over all classes
+    for(int i = 0; i < nrCats; i++)
+    {
+        float totalPredictions_i = 0.f;
+        for(int j = 0; j < nrCats; j++)
+        {
+            totalPredictions_i += (float)matrix(i,j);
+        }
+
+
+        // iterate over all classes and normalize predicted results
+        for(int j = 0; j < nrCats; j++)
+        {
+            if(totalPredictions_i!= 0)
+                confMat[i][j] = (float)(matrix(i,j))/totalPredictions_i;
+        }
+
+        // average error for class i
+        confMat[i][nrCats] = 1.f - confMat[i][i];//classError(i, validation.getErrorMatrix().at(i));
+    }
+    return confMat;
+}
 
